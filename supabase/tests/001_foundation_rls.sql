@@ -6,8 +6,8 @@ select plan(10);
 
 insert into auth.users (id, email)
 values
-  ('11111111-1111-4111-8111-111111111111', 'a@example.invalid'),
-  ('22222222-2222-4222-8222-222222222222', 'b@example.invalid');
+  ('11111111-1111-4111-8111-111111111111', 'pgtap-a@example.invalid'),
+  ('22222222-2222-4222-8222-222222222222', 'pgtap-b@example.invalid');
 
 set local role authenticated;
 select set_config('request.jwt.claim.sub', '11111111-1111-4111-8111-111111111111', true);
