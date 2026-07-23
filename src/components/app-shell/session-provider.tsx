@@ -10,21 +10,27 @@ import {
   useEffect,
   useMemo,
   useRef,
-  useState
+  useState,
 } from "react";
 import { useSWRConfig } from "swr";
 import { z } from "zod";
 
 import { identifyUser, resetUser } from "@/lib/analytics/client";
 import { clearBackNavigationState } from "@/lib/navigation/use-back-navigation-state";
-import { createBrowserSupabaseClient } from "@/lib/supabase/client";
+
+// Loaded via dynamic import only: a static import would chain @supabase/ssr into
+// the shell's first-paint chunks, and nothing here needs it before first render.
+const loadSupabaseClient = async () => {
+  const { createBrowserSupabaseClient } = await import("@/lib/supabase/client");
+  return createBrowserSupabaseClient();
+};
 
 const sessionResponseSchema = z.discriminatedUnion("authenticated", [
   z.object({
     authenticated: z.literal(true),
-    user: z.object({ id: z.uuid() })
+    user: z.object({ id: z.uuid() }),
   }),
-  z.object({ authenticated: z.literal(false) })
+  z.object({ authenticated: z.literal(false) }),
 ]);
 
 type SessionState =
@@ -61,7 +67,7 @@ export function SessionProvider({ children }: Readonly<{ children: ReactNode }>)
         method: "GET",
         credentials: "same-origin",
         cache: "no-store",
-        headers: { Accept: "application/json" }
+        headers: { Accept: "application/json" },
       });
 
       if (sequence !== requestSequence.current) return;
@@ -98,29 +104,37 @@ export function SessionProvider({ children }: Readonly<{ children: ReactNode }>)
   }, [clearProtectedCache]);
 
   useEffect(() => {
-    void verify();
+    // Deferred to a microtask so the effect body never sets state synchronously;
+    // verify() is async, so its setState timing is unchanged.
+    queueMicrotask(() => void verify());
 
     const onFocus = () => void verify();
     const onOnline = () => void verify();
     window.addEventListener("focus", onFocus);
     window.addEventListener("online", onOnline);
 
-    const supabase = createBrowserSupabaseClient();
-    const { data } = supabase.auth.onAuthStateChange((event) => {
-      if (event === "SIGNED_IN" || event === "TOKEN_REFRESHED" || event === "SIGNED_OUT") {
-        void verify();
-      }
+    let disposed = false;
+    let subscription: { unsubscribe: () => void } | null = null;
+    void loadSupabaseClient().then((supabase) => {
+      if (disposed) return;
+      const { data } = supabase.auth.onAuthStateChange((event) => {
+        if (event === "SIGNED_IN" || event === "TOKEN_REFRESHED" || event === "SIGNED_OUT") {
+          void verify();
+        }
+      });
+      subscription = data.subscription;
     });
 
     return () => {
+      disposed = true;
       window.removeEventListener("focus", onFocus);
       window.removeEventListener("online", onOnline);
-      data.subscription.unsubscribe();
+      subscription?.unsubscribe();
     };
   }, [verify]);
 
   const signOut = useCallback(async () => {
-    const supabase = createBrowserSupabaseClient();
+    const supabase = await loadSupabaseClient();
     await supabase.auth.signOut();
     clearProtectedCache();
     resetUser();
@@ -133,7 +147,7 @@ export function SessionProvider({ children }: Readonly<{ children: ReactNode }>)
 
   const value = useMemo<SessionContextValue>(
     () => ({ ...state, verify, signOut }),
-    [signOut, state, verify]
+    [signOut, state, verify],
   );
 
   return <SessionContext.Provider value={value}>{children}</SessionContext.Provider>;

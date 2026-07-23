@@ -80,7 +80,7 @@ Serwist precaches the static shell routes, versioned build assets, manifest, and
 - Repeat-open shell ≤ 500 ms in the CI profile.
 - Tap feedback ≤ 100 ms.
 - 60 fps touch transition target.
-- Root shell JavaScript ≤ 180 KiB gzip.
+- Root shell JavaScript ≤ 178 KiB gzip (`nomodule` polyfills excluded; calibrated 2026-07-22, first real build + 10%).
 - No client chunk > 100 KiB gzip without documenting an exception.
 
 ## Tests and CI
@@ -106,7 +106,6 @@ Unit tests cover schemas, privacy, origin checks, fetch error mapping, and servi
 - **Lighthouse CI:** lab Core Web Vitals budgets before field volume exists.
 - **Prettier:** one deterministic formatter.
 - **Supabase CLI:** empty-database migration replay, pgTAP tests, and generated types.
-
 
 ## Source provenance
 
@@ -157,5 +156,6 @@ Unit tests cover schemas, privacy, origin checks, fetch error mapping, and servi
 
 One entry per foundation bug ported from an app (playbook §4.7):
 
-| Date | Version | Problem | Generic fix | Regression test | Found in |
-|---|---|---|---|---|---|
+| Date       | Version | Problem                                                                                                                                                    | Generic fix                                                                                                                                                                                      | Regression test                                 | Found in              |
+| ---------- | ------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ----------------------------------------------- | --------------------- |
+| 2026-07-22 | 1.0.0   | `check:bundle` counted the `nomodule` polyfills chunk (never executed by modern browsers) and the 180 KiB budget was never calibrated against a real build | Exclude `nomodule` chunks from the counted total (reported as info); Supabase client dynamic-imported out of the shell; `BUNDLE_BUDGET_KIB=178` = first real build (161.8 KiB gz) + 10% headroom | `check:bundle` in `npm run verify` is the guard | app-foundation itself |
