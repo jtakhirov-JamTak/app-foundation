@@ -7,7 +7,7 @@ import type { Route } from "next";
 import { screenFromPath } from "@/lib/analytics/screen-registry";
 import {
   markNavigationStart,
-  reportNavigationFeedback
+  reportNavigationFeedback,
 } from "@/lib/performance/navigation-metrics";
 
 import { navigate, type NavigationRouter } from "./view-transition";
@@ -18,11 +18,11 @@ const DOMINANCE = 1.35;
 export function usePrimarySwipe(
   pathname: string,
   router: NavigationRouter,
-  routes: readonly string[]
+  routes: readonly Route[],
 ) {
   const start = useRef<{ x: number; y: number; pointerId: number } | null>(null);
   const routeIndex = routes.findIndex((route) =>
-    route === "/" ? pathname === "/" : pathname.startsWith(route)
+    route === "/" ? pathname === "/" : pathname.startsWith(route),
   );
 
   return useMemo(() => {
@@ -59,7 +59,7 @@ export function usePrimarySwipe(
       const to = screenFromPath(href);
       markNavigationStart(from, to);
       reportNavigationFeedback(to);
-      navigate(router, href as Route);
+      navigate(router, href);
     };
 
     const onPointerCancel: PointerEventHandler<HTMLElement> = () => {

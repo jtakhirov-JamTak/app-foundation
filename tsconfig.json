@@ -16,7 +16,11 @@
     "noUncheckedIndexedAccess": true,
     "noImplicitOverride": true,
     "noFallthroughCasesInSwitch": true,
-    "plugins": [{ "name": "next" }],
+    "plugins": [
+      {
+        "name": "next"
+      }
+    ],
     "paths": {
       "@/*": ["./src/*"]
     },
@@ -28,7 +32,8 @@
     "**/*.ts",
     "**/*.tsx",
     "**/*.mts",
-    "**/*.mjs"
+    "**/*.mjs",
+    ".next/dev/types/**/*.ts"
   ],
   "exclude": ["node_modules", "public/sw.js"]
 }

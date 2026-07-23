@@ -4,7 +4,7 @@ import type { Route } from "next";
 
 export type NavigationRouter = {
   push: (href: Route) => void;
-  prefetch: (href: string) => void;
+  prefetch: (href: Route) => void;
 };
 
 type ViewTransitionDocument = Document & {
