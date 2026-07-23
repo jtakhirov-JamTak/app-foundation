@@ -17,23 +17,59 @@ async function discover(directory) {
 }
 
 await discover(join(process.cwd(), "src", "app"));
-await mkdir(join(process.cwd(), "supabase", "tests"), { recursive: true });
+
+const testsDirectory = join(process.cwd(), "supabase", "tests");
+await mkdir(testsDirectory, { recursive: true });
+
+// The foundation RLS suite must exist; a runner that finds nothing to run must
+// fail, never pass. Generated copies (zz_generated_*) don't count — they may be
+// stale leftovers from an interrupted run.
+const foundationTests = (await readdir(testsDirectory)).filter(
+  (name) => name.endsWith(".sql") && !name.startsWith("zz_generated_"),
+);
+if (foundationTests.length === 0) {
+  console.error(
+    "db:test: no .sql test files in supabase/tests/ — the foundation RLS suite is missing. Failing instead of reporting a vacuous pass.",
+  );
+  process.exit(1);
+}
+
+console.log(
+  `db:test: ${foundationTests.length} test file(s) in supabase/tests/, ${generated.length} generated feature test(s) discovered under src/app.`,
+);
 
 const copied = [];
+let exitCode = 1;
 try {
   for (const [index, source] of generated.entries()) {
     const target = join(
-      process.cwd(),
-      "supabase",
-      "tests",
-      `zz_generated_${String(index + 1).padStart(3, "0")}_${basename(source)}`
+      testsDirectory,
+      `zz_generated_${String(index + 1).padStart(3, "0")}_${basename(source)}`,
     );
     await cp(source, target);
     copied.push(target);
   }
+  if (copied.length > 0) {
+    console.log(`db:test: copied ${copied.length} generated test(s) into supabase/tests/.`);
+  }
 
-  const result = spawnSync("supabase", ["test", "db"], { stdio: "inherit" });
-  if (result.status !== 0) process.exit(result.status ?? 1);
+  // spawnSync can't launch the CLI's .cmd shim on Windows without a shell; the
+  // command and args are fixed literals, so shell interpolation is not a risk.
+  const command = ["npx", "--no-install", "supabase", "test", "db"];
+  console.log(`db:test: running \`${command.join(" ")}\``);
+  const result = spawnSync(command[0], command.slice(1), {
+    stdio: "inherit",
+    shell: process.platform === "win32",
+  });
+
+  if (result.error) {
+    console.error(`db:test: failed to launch the Supabase CLI: ${result.error.message}`);
+  } else if (result.status === null) {
+    console.error(`db:test: Supabase CLI was terminated by signal ${result.signal}`);
+  } else {
+    exitCode = result.status;
+  }
 } finally {
   await Promise.all(copied.map((path) => rm(path, { force: true })));
 }
+process.exit(exitCode);
