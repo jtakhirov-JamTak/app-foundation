@@ -58,7 +58,7 @@ export async function POST(request: Request) {
     properties: parsed.data.properties,
     platform: parsed.data.platform,
     app_version: parsed.data.app_version,
-    occurred_at: parsed.data.occurred_at
+    occurred_at: parsed.data.occurred_at,
   });
 
   if (error) {

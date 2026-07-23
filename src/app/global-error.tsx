@@ -6,7 +6,7 @@ import { recordError } from "@/lib/analytics/client";
 
 export default function GlobalError({
   error,
-  reset
+  reset,
 }: {
   error: Error & { digest?: string };
   reset: () => void;
@@ -28,7 +28,7 @@ export default function GlobalError({
             display: "grid",
             placeItems: "center",
             padding: "1.25rem",
-            fontFamily: "system-ui, sans-serif"
+            fontFamily: "system-ui, sans-serif",
           }}
         >
           <section style={{ maxWidth: "28rem", textAlign: "center" }}>
@@ -49,12 +49,13 @@ export default function GlobalError({
                 padding: "0 1.25rem",
                 background: "#2656d8",
                 color: "#fff",
-                fontWeight: 700
+                fontWeight: 700,
               }}
             >
               Try again
             </button>
             <p>
+              {/* eslint-disable-next-line @next/next/no-html-link-for-pages -- intentional hard reload: client-side routing may be broken inside the global error boundary */}
               <a href="/" style={{ color: "#2656d8" }}>
                 Return home
               </a>

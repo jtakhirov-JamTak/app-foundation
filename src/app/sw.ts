@@ -21,7 +21,7 @@ const serwist = new Serwist({
   precacheOptions: {
     cacheName: `${cacheId}-precache`,
     cleanupOutdatedCaches: true,
-    fallbackToNetwork: false
+    fallbackToNetwork: false,
   },
   skipWaiting: true,
   clientsClaim: true,
@@ -30,13 +30,13 @@ const serwist = new Serwist({
   runtimeCaching: [
     {
       matcher: ({ url, request }) => isSensitiveRequest(url, request, self.location.origin),
-      handler: new NetworkOnly()
+      handler: new NetworkOnly(),
     },
     {
       matcher: ({ request }) => request.mode === "navigate",
-      handler: new NetworkOnly()
-    }
-  ]
+      handler: new NetworkOnly(),
+    },
+  ],
 });
 
 serwist.setCatchHandler(async ({ request }) => {

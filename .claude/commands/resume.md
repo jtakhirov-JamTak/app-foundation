@@ -5,7 +5,7 @@ description: Restore working context after /clear by reading session-context.md 
 
 Restore working context after `/clear`. The source of truth is `session-context.md` at the project root.
 
-This complements the memory system, it doesn't replace it. Memory has already been loaded into context automatically. This command is for "what was I doing in this repo *right before* /clear".
+This complements the memory system, it doesn't replace it. Memory has already been loaded into context automatically. This command is for "what was I doing in this repo _right before_ /clear".
 
 ## Step 1 — Find the file
 

@@ -6,24 +6,19 @@ export function requestId(): string {
   return crypto.randomUUID();
 }
 
-export function apiError(
-  code: string,
-  status: number,
-  recoverable: boolean,
-  id: string
-) {
+export function apiError(code: string, status: number, recoverable: boolean, id: string) {
   return NextResponse.json(
     {
       error: {
         code,
         request_id: id,
-        recoverable
-      }
+        recoverable,
+      },
     },
     {
       status,
-      headers: { "Cache-Control": "no-store" }
-    }
+      headers: { "Cache-Control": "no-store" },
+    },
   );
 }
 

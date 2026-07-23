@@ -7,7 +7,7 @@ describe("readJsonBody", () => {
     const request = new Request("https://app.example/api/test", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ value: 1 })
+      body: JSON.stringify({ value: 1 }),
     });
 
     await expect(readJsonBody(request)).resolves.toEqual({ value: 1 });
@@ -17,11 +17,11 @@ describe("readJsonBody", () => {
     const request = new Request("https://app.example/api/test", {
       method: "POST",
       headers: { "Content-Type": "text/plain" },
-      body: "value"
+      body: "value",
     });
 
     await expect(readJsonBody(request)).rejects.toMatchObject({
-      status: 415
+      status: 415,
     });
   });
 
@@ -29,7 +29,7 @@ describe("readJsonBody", () => {
     const request = new Request("https://app.example/api/test", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ value: "x".repeat(100) })
+      body: JSON.stringify({ value: "x".repeat(100) }),
     });
 
     await expect(readJsonBody(request, 20)).rejects.toMatchObject({ status: 413 });

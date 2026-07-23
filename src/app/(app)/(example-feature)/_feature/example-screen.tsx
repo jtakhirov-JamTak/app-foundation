@@ -27,7 +27,7 @@ function ExampleContent() {
   const { data, error, isLoading, isValidating, mutate } = useSWR<ExampleList>(
     exampleRecordsKey,
     fetchExampleRecords,
-    { keepPreviousData: true }
+    { keepPreviousData: true },
   );
   const [title, setTitle] = useBackNavigationState("example:new-record-title", "");
   const [saveState, setSaveState] = useState<"idle" | "pending" | "error">("idle");
@@ -47,15 +47,15 @@ function ExampleContent() {
     try {
       const created = await createExampleRecord({
         title: cleanTitle,
-        idempotency_key: key
+        idempotency_key: key,
       });
       await mutate(
         (current) => ({
           records: current
             ? [created.record, ...current.records.filter((item) => item.id !== created.record.id)]
-            : [created.record]
+            : [created.record],
         }),
-        { revalidate: true }
+        { revalidate: true },
       );
       setTitle("");
       setSaveState("idle");
@@ -135,7 +135,10 @@ function ExampleContent() {
           {data.records.map((record) => (
             <li key={record.id} className="card p-4">
               <p className="font-semibold">{record.title}</p>
-              <time className="mt-1 block text-xs text-[var(--text-muted)]" dateTime={record.created_at}>
+              <time
+                className="mt-1 block text-xs text-[var(--text-muted)]"
+                dateTime={record.created_at}
+              >
                 {new Date(record.created_at).toLocaleString()}
               </time>
             </li>

@@ -25,6 +25,6 @@ export function reportNavigationFeedback(to: ScreenName): void {
   void trackEvent("navigation_feedback_measured", {
     from: pending.from,
     to,
-    feedback_ms: Math.max(0, Math.round(performance.now() - pending.startedAt))
+    feedback_ms: Math.max(0, Math.round(performance.now() - pending.startedAt)),
   });
 }

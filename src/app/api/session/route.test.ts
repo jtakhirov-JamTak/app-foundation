@@ -1,11 +1,11 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const mocks = vi.hoisted(() => ({
-  createServerSupabaseClient: vi.fn()
+  createServerSupabaseClient: vi.fn(),
 }));
 
 vi.mock("@/lib/supabase/server", () => ({
-  createServerSupabaseClient: mocks.createServerSupabaseClient
+  createServerSupabaseClient: mocks.createServerSupabaseClient,
 }));
 
 import { GET } from "./route";
@@ -19,10 +19,15 @@ describe("session API", () => {
     mocks.createServerSupabaseClient.mockResolvedValue({
       auth: {
         getClaims: vi.fn().mockResolvedValue({
-          data: { claims: { sub: "11111111-1111-4111-8111-111111111111", email: "private@example.invalid" } },
-          error: null
-        })
-      }
+          data: {
+            claims: {
+              sub: "11111111-1111-4111-8111-111111111111",
+              email: "private@example.invalid",
+            },
+          },
+          error: null,
+        }),
+      },
     });
 
     const response = await GET();
@@ -31,7 +36,7 @@ describe("session API", () => {
     expect(response.status).toBe(200);
     expect(body).toEqual({
       authenticated: true,
-      user: { id: "11111111-1111-4111-8111-111111111111" }
+      user: { id: "11111111-1111-4111-8111-111111111111" },
     });
     expect(JSON.stringify(body)).not.toContain("private@example.invalid");
     expect(response.headers.get("Cache-Control")).toBe("no-store");
@@ -39,7 +44,7 @@ describe("session API", () => {
 
   it("returns 401 when no authenticated subject exists", async () => {
     mocks.createServerSupabaseClient.mockResolvedValue({
-      auth: { getClaims: vi.fn().mockResolvedValue({ data: { claims: {} }, error: null }) }
+      auth: { getClaims: vi.fn().mockResolvedValue({ data: { claims: {} }, error: null }) },
     });
 
     const response = await GET();
@@ -51,9 +56,9 @@ describe("session API", () => {
       auth: {
         getClaims: vi.fn().mockResolvedValue({
           data: null,
-          error: { message: "private provider detail" }
-        })
-      }
+          error: { message: "private provider detail" },
+        }),
+      },
     });
 
     const response = await GET();

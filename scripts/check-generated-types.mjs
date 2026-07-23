@@ -24,7 +24,7 @@ function typeLiteralProperty(typeNode, name) {
     throw new Error(`Expected a type literal while reading ${name}`);
   }
   const property = typeNode.members.find(
-    (member) => ts.isPropertySignature(member) && propertyName(member.name) === name
+    (member) => ts.isPropertySignature(member) && propertyName(member.name) === name,
   );
   if (!property || !ts.isPropertySignature(property) || !property.type) {
     throw new Error(`Missing Database property: ${name}`);
@@ -50,11 +50,11 @@ function shapeOfObject(typeNode, sourceFile) {
           propertyName(member.name),
           {
             optional: Boolean(member.questionToken),
-            type: normalizeType(member.type, sourceFile)
-          }
+            type: normalizeType(member.type, sourceFile),
+          },
         ];
       })
-      .sort(([left], [right]) => left.localeCompare(right))
+      .sort(([left], [right]) => left.localeCompare(right)),
   );
 }
 
@@ -79,14 +79,20 @@ function namedObject(typeNode, sourceFile, childShapeNames) {
         }
         return [name, entry];
       })
-      .sort(([left], [right]) => left.localeCompare(right))
+      .sort(([left], [right]) => left.localeCompare(right)),
   );
 }
 
 function extractContract(text, fileName) {
-  const sourceFile = ts.createSourceFile(fileName, text, ts.ScriptTarget.Latest, true, ts.ScriptKind.TS);
+  const sourceFile = ts.createSourceFile(
+    fileName,
+    text,
+    ts.ScriptTarget.Latest,
+    true,
+    ts.ScriptKind.TS,
+  );
   const database = sourceFile.statements.find(
-    (statement) => ts.isTypeAliasDeclaration(statement) && statement.name.text === "Database"
+    (statement) => ts.isTypeAliasDeclaration(statement) && statement.name.text === "Database",
   );
   if (!database || !ts.isTypeAliasDeclaration(database)) {
     throw new Error(`${fileName} does not export type Database`);
@@ -98,7 +104,7 @@ function extractContract(text, fileName) {
 
   return {
     tables: namedObject(tables, sourceFile, ["Row", "Insert"]),
-    functions: namedObject(functions, sourceFile, ["Args"])
+    functions: namedObject(functions, sourceFile, ["Args"]),
   };
 }
 
@@ -106,9 +112,9 @@ function mergeContracts(contracts) {
   return contracts.reduce(
     (merged, contract) => ({
       tables: { ...merged.tables, ...contract.tables },
-      functions: { ...merged.functions, ...contract.functions }
+      functions: { ...merged.functions, ...contract.functions },
     }),
-    { tables: {}, functions: {} }
+    { tables: {}, functions: {} },
   );
 }
 
@@ -117,8 +123,8 @@ const committedPaths = ["src/types/database.ts", ...slices.map((slice) => slice.
 
 const committed = mergeContracts(
   await Promise.all(
-    committedPaths.map(async (path) => extractContract(await readFile(path, "utf8"), path))
-  )
+    committedPaths.map(async (path) => extractContract(await readFile(path, "utf8"), path)),
+  ),
 );
 const generatedText = await readFile(generatedPath, "utf8");
 const generated = extractContract(generatedText, generatedPath);
@@ -132,4 +138,6 @@ if (committedJson !== generatedJson) {
   process.exit(1);
 }
 
-console.log(`Generated database contract matches the base types and ${slices.length} optional feature slice(s).`);
+console.log(
+  `Generated database contract matches the base types and ${slices.length} optional feature slice(s).`,
+);

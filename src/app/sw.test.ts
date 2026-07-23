@@ -13,7 +13,7 @@ describe("service-worker routing contract", () => {
     ["https://app.example/api/session", "GET"],
     ["https://project.supabase.co/auth/v1/token", "POST"],
     ["https://app.example/sign-in", "GET"],
-    ["https://app.example/anything", "POST"]
+    ["https://app.example/anything", "POST"],
   ])("keeps %s network-only", (url: string, method: string) => {
     const value = request(url, method);
     expect(isSensitiveRequest(new URL(url), value, appOrigin)).toBe(true);

@@ -32,8 +32,8 @@ export async function readDatabaseTypeSlices(root = process.cwd()) {
         configPath,
         tables: new Set(parsed.tables),
         functions: new Set(parsed.functions),
-        outputPath: resolve(dirname(configPath), parsed.output)
+        outputPath: resolve(dirname(configPath), parsed.output),
       };
-    })
+    }),
   );
 }

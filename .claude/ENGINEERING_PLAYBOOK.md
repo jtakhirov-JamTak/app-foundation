@@ -16,8 +16,8 @@ or the topic gets dropped. Frameworks are a known failure mode here; timebox the
 Cheapest check that can catch the mistake runs first:
 
 1. Typecheck (seconds) → 2. Unit tests (seconds) → 3. `npm run verify` (minutes)
-→ 4. `npm run db:test` — pgTAP RLS (minutes) → 5. `npm run test:e2e` (minutes)
-→ 6. Real phone, production build (the only test that certifies feel).
+   → 4. `npm run db:test` — pgTAP RLS (minutes) → 5. `npm run test:e2e` (minutes)
+   → 6. Real phone, production build (the only test that certifies feel).
 
 Rungs 1–3 on every change. Rung 4 on any migration or policy change. Rungs 5–6 before
 tagging a release. Never claim something works from reading code — run the rung, and
@@ -27,14 +27,14 @@ report results exactly: passed, failed, or skipped.
 
 `/fix-bug` is the process. The judgment layer on top:
 
-- **Two failed fixes = wrong diagnosis.** Attempt 3 must test a *genuinely different*
+- **Two failed fixes = wrong diagnosis.** Attempt 3 must test a _genuinely different_
   explanation — never a third variation on the same theory — or STOP.
 - **On STOP, record per attempt:** the theory, what evidence disproved it, the
   remaining unknown, and the decision that needs human input.
 - **Timebox: 45 minutes stuck → stop, write the theories down, leave.** Fresh context
   next session solves in minutes what the tunnel couldn't.
 - **Symptom layer ≠ cause layer.** Say which layer you believe the cause is in
-  *before* editing code.
+  _before_ editing code.
 - A confirmed real failure is the highest-value test that exists. Lock every fixed
   bug with a regression test on the exact failing input.
 

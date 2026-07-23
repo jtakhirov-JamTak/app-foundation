@@ -2,7 +2,7 @@ import { expect, test } from "@playwright/test";
 
 test("service worker serves the repeat-open shell and never caches API responses", async ({
   page,
-  context
+  context,
 }) => {
   await page.route("**/api/session", (route) =>
     route.fulfill({
@@ -10,9 +10,9 @@ test("service worker serves the repeat-open shell and never caches API responses
       contentType: "application/json",
       body: JSON.stringify({
         authenticated: true,
-        user: { id: "11111111-1111-4111-8111-111111111111" }
-      })
-    })
+        user: { id: "11111111-1111-4111-8111-111111111111" },
+      }),
+    }),
   );
   await page.route("**/api/events", (route) => route.fulfill({ status: 204, body: "" }));
 
@@ -28,7 +28,7 @@ test("service worker serves the repeat-open shell and never caches API responses
         keys.map(async (key) => {
           const cache = await caches.open(key);
           return (await cache.keys()).map((request) => request.url);
-        })
+        }),
       )
     ).flat();
     return { keys, urls };

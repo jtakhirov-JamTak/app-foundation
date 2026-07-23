@@ -19,8 +19,8 @@ export async function createServerSupabaseClient<TDatabase = Database>() {
           for (const { name, value, options } of cookiesToSet) {
             cookieStore.set(name, value, options);
           }
-        }
-      }
-    }
+        },
+      },
+    },
   );
 }

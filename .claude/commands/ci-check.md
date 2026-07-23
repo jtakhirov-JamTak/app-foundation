@@ -16,7 +16,7 @@ This is deliberately thin. The job is to move the **typecheck / lint / build** s
 - The host/CI platform (GitHub Actions, GitLab CI, etc.) — check for an existing `.github/workflows/` or equivalent before creating one.
 - The package manager + lockfile (drives the install step and the frozen-lockfile flag).
 - The real script names (`package.json`): typecheck (`tsc --noEmit`), lint, build. Reuse the **same commands `npm run verify` discovers** — CI and local verification should run identical steps, not drift.
-- Whether the deploy provider already runs a build (Vercel does) — so CI's build step is about *earlier* signal + lint, and you say that, rather than implying prod is unprotected.
+- Whether the deploy provider already runs a build (Vercel does) — so CI's build step is about _earlier_ signal + lint, and you say that, rather than implying prod is unprotected.
 
 ## Audit mode (a workflow already exists)
 
@@ -30,6 +30,7 @@ This is deliberately thin. The job is to move the **typecheck / lint / build** s
 ## Setup mode (no workflow yet)
 
 Propose a minimal workflow that:
+
 1. Triggers on push to the default branch + pull requests.
 2. Checks out, sets up the pinned Node version, installs with the frozen-lockfile flag (cached).
 3. Runs typecheck → lint → build, failing on any error. Mirror the `npm run verify` step order.

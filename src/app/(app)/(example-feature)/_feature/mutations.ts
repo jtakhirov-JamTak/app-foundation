@@ -6,6 +6,6 @@ export function createExampleRecord(input: { title: string; idempotency_key: str
   return fetchJson("/api/example-records", createExampleResponseSchema, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(input)
+    body: JSON.stringify(input),
   });
 }

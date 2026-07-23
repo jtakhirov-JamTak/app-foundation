@@ -4,7 +4,7 @@ import { Suspense } from "react";
 import { SignInForm } from "./sign-in-form";
 
 export const metadata: Metadata = {
-  title: "Sign in"
+  title: "Sign in",
 };
 
 export const dynamic = "force-static";

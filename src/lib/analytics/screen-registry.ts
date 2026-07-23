@@ -2,7 +2,7 @@ import type { ScreenName } from "./catalog";
 
 const paths = new Map<string, ScreenName>([
   ["/settings", "settings"],
-  ["/", "home"]
+  ["/", "home"],
 ]);
 
 export function registerScreenPath(prefix: string, screen: ScreenName): void {

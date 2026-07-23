@@ -36,8 +36,9 @@ The rule: **gating is a centralized helper, never inlined.** Drift between inlin
 - If you find inlined checks instead of a helper, that's an architectural finding — propose creating the helper before continuing.
 
 **Routes that must NOT be gated:**
+
 - Auth callback / session refresh
-- The endpoint that *creates* the subscription
+- The endpoint that _creates_ the subscription
 - Onboarding writes that run before the user can pay
 - Webhook receivers (use signature verification instead)
 - Admin routes (use the admin helper, not the paid gate)

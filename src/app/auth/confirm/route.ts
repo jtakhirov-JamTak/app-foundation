@@ -13,7 +13,7 @@ const allowedTypes = new Set<EmailOtpType>([
   "magiclink",
   "recovery",
   "email_change",
-  "email"
+  "email",
 ]);
 
 export async function GET(request: NextRequest) {
@@ -25,7 +25,7 @@ export async function GET(request: NextRequest) {
     const supabase = await createServerSupabaseClient();
     const { error } = await supabase.auth.verifyOtp({
       token_hash: tokenHash,
-      type: rawType as EmailOtpType
+      type: rawType as EmailOtpType,
     });
 
     if (!error) {

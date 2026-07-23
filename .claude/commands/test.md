@@ -26,7 +26,7 @@ Do **not** test: framework behaviour, getters with no logic, code with no failur
 ## Mode: `write`
 
 1. State, in one line each, the failure modes worth a test for this target (from the ranking above).
-2. For each: arrange (realistic fixtures, the project's auth/DB setup helper), act, assert the *behaviour* — not the implementation detail that will churn.
+2. For each: arrange (realistic fixtures, the project's auth/DB setup helper), act, assert the _behaviour_ — not the implementation detail that will churn.
 3. Cover the boundaries `/grill` would attack: empty/whitespace, at-limit, null vs `""`, double-submit/replay, the `{ data, error }` error branch, the gated-403 path.
 4. Match the sibling's structure exactly. Run the new tests; they must pass (or fail for the right reason if writing a red regression test first).
 
@@ -41,4 +41,4 @@ Do **not** test: framework behaviour, getters with no logic, code with no failur
 - `write`: the test files/blocks, the failure modes each one locks, and a one-line "what was deliberately not tested and why".
 - `audit`: a risk-ranked gap table (surface / covered? / blast radius / one-line "what breaks silently if untested"), then the single highest-leverage test to write first.
 
-Do not run the full suite as the deliverable — that's `npm run verify`. This skill's job is the tests' *existence and aim*, not their green checkmark.
+Do not run the full suite as the deliverable — that's `npm run verify`. This skill's job is the tests' _existence and aim_, not their green checkmark.

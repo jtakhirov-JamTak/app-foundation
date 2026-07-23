@@ -9,14 +9,12 @@ const suspicious = [
   /\bgh[pousr]_[A-Za-z0-9_]{30,}\b/,
   /\bsk_(?:live|test)_[A-Za-z0-9]{20,}\b/,
   /\bAKIA[0-9A-Z]{16}\b/,
-  /(?:SUPABASE_SECRET_KEY|UPSTASH_REDIS_REST_TOKEN|OPENAI_API_KEY|ANTHROPIC_API_KEY|STRIPE_SECRET_KEY)\s*=\s*(?!(?:replace|test|ci)-)[^\s#]{20,}/
+  /(?:SUPABASE_SECRET_KEY|UPSTASH_REDIS_REST_TOKEN|OPENAI_API_KEY|ANTHROPIC_API_KEY|STRIPE_SECRET_KEY)\s*=\s*(?!(?:replace|test|ci)-)[^\s#]{20,}/,
 ];
 
-const result = spawnSync(
-  "git",
-  ["ls-files", "--cached", "--others", "--exclude-standard", "-z"],
-  { encoding: "buffer" }
-);
+const result = spawnSync("git", ["ls-files", "--cached", "--others", "--exclude-standard", "-z"], {
+  encoding: "buffer",
+});
 
 if (result.status !== 0 || !result.stdout) {
   throw new Error("Secret scan requires a Git working tree");

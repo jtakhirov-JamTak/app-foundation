@@ -18,7 +18,7 @@ function nameOf(node) {
 function property(typeNode, name) {
   if (!ts.isTypeLiteralNode(typeNode)) throw new Error(`Expected type literal for ${name}`);
   const member = typeNode.members.find(
-    (candidate) => ts.isPropertySignature(candidate) && nameOf(candidate.name) === name
+    (candidate) => ts.isPropertySignature(candidate) && nameOf(candidate.name) === name,
   );
   if (!member || !ts.isPropertySignature(member) || !member.type) {
     throw new Error(`Generated database types are missing ${name}`);
@@ -37,7 +37,7 @@ function indent(text, spaces) {
 function selectedTypeLiteral(typeNode, sourceFile, selectedNames) {
   if (!ts.isTypeLiteralNode(typeNode)) throw new Error("Expected generated object type");
   const members = typeNode.members.filter(
-    (member) => ts.isPropertySignature(member) && selectedNames(nameOf(member.name))
+    (member) => ts.isPropertySignature(member) && selectedNames(nameOf(member.name)),
   );
   if (members.length === 0) return "{ [_ in never]: never }";
   return `{\n${members.map((member) => indent(member.getText(sourceFile), 2)).join("\n")}\n}`;
@@ -46,10 +46,10 @@ function selectedTypeLiteral(typeNode, sourceFile, selectedNames) {
 function buildOutput(raw, selectTable, selectFunction, banner = "") {
   const sourceFile = ts.createSourceFile("database.raw.ts", raw, ts.ScriptTarget.Latest, true);
   const jsonAlias = sourceFile.statements.find(
-    (statement) => ts.isTypeAliasDeclaration(statement) && statement.name.text === "Json"
+    (statement) => ts.isTypeAliasDeclaration(statement) && statement.name.text === "Json",
   );
   const databaseAlias = sourceFile.statements.find(
-    (statement) => ts.isTypeAliasDeclaration(statement) && statement.name.text === "Database"
+    (statement) => ts.isTypeAliasDeclaration(statement) && statement.name.text === "Database",
   );
   if (!jsonAlias || !databaseAlias || !ts.isTypeAliasDeclaration(databaseAlias)) {
     throw new Error("Supabase output does not contain Json and Database type aliases");
@@ -68,13 +68,13 @@ function buildOutput(raw, selectTable, selectFunction, banner = "") {
 
   return `${banner}${jsonAlias.getText(sourceFile)}\n\nexport type Database = {\n${indent(
     internal.getText(sourceFile),
-    2
+    2,
   )}\n  public: {\n    Tables: ${indent(tableText, 4).trimStart()}\n${indent(
     views.getText(sourceFile),
-    4
+    4,
   )}\n    Functions: ${indent(functionText, 4).trimStart()}\n${indent(
     enums.getText(sourceFile),
-    4
+    4,
   )}\n${indent(composites.getText(sourceFile), 4)}\n  }\n}\n`;
 }
 
@@ -85,7 +85,7 @@ function generatedText() {
   const result = spawnSync(
     "supabase",
     ["gen", "types", "typescript", "--local", "--schema", "public"],
-    { encoding: "utf8", stdio: ["ignore", "pipe", "inherit"] }
+    { encoding: "utf8", stdio: ["ignore", "pipe", "inherit"] },
   );
   if (result.status !== 0 || !result.stdout) {
     throw new Error("Supabase type generation failed");
@@ -101,7 +101,7 @@ const slicedFunctions = new Set(slices.flatMap((slice) => [...slice.functions]))
 const base = buildOutput(
   raw,
   (name) => !slicedTables.has(name),
-  (name) => !slicedFunctions.has(name)
+  (name) => !slicedFunctions.has(name),
 );
 await writeFile("src/types/database.ts", base);
 
@@ -110,9 +110,11 @@ for (const slice of slices) {
     raw,
     (name) => slice.tables.has(name),
     (name) => slice.functions.has(name),
-    "// OPTIONAL FEATURE GENERATED DATABASE TYPES.\n// Deleted with the feature folder.\n\n"
+    "// OPTIONAL FEATURE GENERATED DATABASE TYPES.\n// Deleted with the feature folder.\n\n",
   );
   await writeFile(slice.outputPath, output);
 }
 
-console.log(`Database types synchronized: base schema plus ${slices.length} optional feature slice(s).`);
+console.log(
+  `Database types synchronized: base schema plus ${slices.length} optional feature slice(s).`,
+);

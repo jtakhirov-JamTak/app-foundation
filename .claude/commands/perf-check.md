@@ -36,6 +36,7 @@ Identify, before judging: the ORM / query API (Drizzle, Prisma, supabase-js/Post
 ## Output
 
 Severity-ranked, `file:line — finding — what it costs at 10× — suggested direction`:
+
 - `CRITICAL` — unbounded query on a growing table in a hot path; N+1 that multiplies with users.
 - `HIGH` — missing index on a filtered hot-path column; a heavy lib in the initial bundle on a mobile-first app.
 - `MEDIUM` — over-fetching; missing code-split on a non-critical route; image not optimized.

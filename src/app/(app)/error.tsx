@@ -7,7 +7,7 @@ import { recordError } from "@/lib/analytics/client";
 
 export default function ProtectedRouteError({
   error: _error,
-  reset
+  reset,
 }: {
   error: Error & { digest?: string };
   reset: () => void;

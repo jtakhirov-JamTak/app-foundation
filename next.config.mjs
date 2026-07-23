@@ -7,7 +7,7 @@ const additionalPrecacheEntries = [
   { url: "/offline", revision: appVersion },
   { url: "/manifest.webmanifest", revision: appVersion },
   { url: "/icon-192.png", revision: appVersion },
-  { url: "/icon-512.png", revision: appVersion }
+  { url: "/icon-512.png", revision: appVersion },
 ];
 
 const withSerwist = withSerwistInit({
@@ -22,8 +22,8 @@ const withSerwist = withSerwistInit({
     /middleware-manifest\.json$/,
     /_buildManifest\.js$/,
     /_ssgManifest\.js$/,
-    /server\/app\/.*\.rsc$/
-  ]
+    /server\/app\/.*\.rsc$/,
+  ],
 });
 
 /** @type {import("next").NextConfig} */
@@ -38,12 +38,12 @@ const nextConfig = {
         source: "/sw.js",
         headers: [
           { key: "Cache-Control", value: "public, max-age=0, must-revalidate" },
-          { key: "Service-Worker-Allowed", value: "/" }
-        ]
+          { key: "Service-Worker-Allowed", value: "/" },
+        ],
       },
       {
         source: "/api/:path*",
-        headers: [{ key: "Cache-Control", value: "no-store, max-age=0" }]
+        headers: [{ key: "Cache-Control", value: "no-store, max-age=0" }],
       },
       {
         source: "/:path*",
@@ -55,13 +55,13 @@ const nextConfig = {
           { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
           {
             key: "Content-Security-Policy",
-            value: "base-uri 'self'; form-action 'self'; frame-ancestors 'none'; object-src 'none'"
+            value: "base-uri 'self'; form-action 'self'; frame-ancestors 'none'; object-src 'none'",
           },
-          { key: "Permissions-Policy", value: "camera=(), microphone=(), geolocation=()" }
-        ]
-      }
+          { key: "Permissions-Policy", value: "camera=(), microphone=(), geolocation=()" },
+        ],
+      },
     ];
-  }
+  },
 };
 
 export default withSerwist(nextConfig);

@@ -16,13 +16,13 @@ function distributedLimiter(limit: number, window: `${number} ${"s" | "m" | "h"}
 
   redis ??= new Redis({
     url: serverEnv.UPSTASH_REDIS_REST_URL,
-    token: serverEnv.UPSTASH_REDIS_REST_TOKEN
+    token: serverEnv.UPSTASH_REDIS_REST_TOKEN,
   });
 
   return new Ratelimit({
     redis,
     limiter: Ratelimit.slidingWindow(limit, window),
-    prefix: clientEnv.NEXT_PUBLIC_APP_ID
+    prefix: clientEnv.NEXT_PUBLIC_APP_ID,
   });
 }
 
@@ -44,7 +44,7 @@ function localLimit(key: string, limit: number, windowMs: number): LimitResult {
       success: false,
       remaining: 0,
       reset: existing.resetAt,
-      reason: "limited"
+      reason: "limited",
     };
   }
 
@@ -52,7 +52,7 @@ function localLimit(key: string, limit: number, windowMs: number): LimitResult {
   return {
     success: true,
     remaining: limit - existing.count,
-    reset: existing.resetAt
+    reset: existing.resetAt,
   };
 }
 
@@ -66,7 +66,7 @@ function windowToMs(window: `${number} ${"s" | "m" | "h"}`): number {
 export async function limitUser(
   key: string,
   limit: number,
-  window: `${number} ${"s" | "m" | "h"}`
+  window: `${number} ${"s" | "m" | "h"}`,
 ) {
   const limiter = distributedLimiter(limit, window);
   if (limiter) {
@@ -76,21 +76,21 @@ export async function limitUser(
         return {
           success: true,
           remaining: result.remaining,
-          reset: result.reset
+          reset: result.reset,
         } satisfies LimitResult;
       }
       return {
         success: false,
         remaining: 0,
         reset: result.reset,
-        reason: "limited"
+        reason: "limited",
       } satisfies LimitResult;
     } catch {
       return {
         success: false,
         remaining: 0,
         reset: Date.now() + windowToMs(window),
-        reason: "unavailable"
+        reason: "unavailable",
       } satisfies LimitResult;
     }
   }
@@ -100,7 +100,7 @@ export async function limitUser(
       success: false,
       remaining: 0,
       reset: Date.now() + windowToMs(window),
-      reason: "unavailable"
+      reason: "unavailable",
     } satisfies LimitResult;
   }
 

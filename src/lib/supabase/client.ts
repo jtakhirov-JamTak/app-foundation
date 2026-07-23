@@ -10,7 +10,7 @@ let browserClient: ReturnType<typeof createBrowserClient<Database>> | null = nul
 export function createBrowserSupabaseClient() {
   browserClient ??= createBrowserClient<Database>(
     clientEnv.NEXT_PUBLIC_SUPABASE_URL,
-    clientEnv.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY
+    clientEnv.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY,
   );
   return browserClient;
 }

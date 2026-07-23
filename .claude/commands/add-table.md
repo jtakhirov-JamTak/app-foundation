@@ -20,14 +20,17 @@ Required columns on any user-scoped table:
 - **Indexes** — on every filterable / sortable column. At minimum the owner FK. `(user_id, created_at DESC)` is common.
 
 If the table stores a computed snapshot:
+
 - **`generator_version`** — text or int stamped by the code version that produced the snapshot. Readers filter on it; writers stamp it. Bumping invalidates stale rows without a migration.
 
 If the table has a state machine (`open`/`resolved`/`archived`):
+
 - The status column should not be user-writable through the gateway path. Transitions go through dedicated mutation endpoints.
 
 ## Data classification
 
 For sensitive columns, add a comment at column creation:
+
 - `email TEXT NOT NULL, -- PII: email`
 - `journal_text TEXT, -- SENSITIVE: journal content`
 

@@ -69,6 +69,7 @@ Audit one or more pages for mobile-first UX issues.
 For each issue: `file (or component) — what's wrong in plain English — what to change — priority`.
 
 Priority:
+
 - `must fix` — silently breaks input, blocks tap, fails contrast
 - `should fix` — degrades feel
 - `nice to have` — polish

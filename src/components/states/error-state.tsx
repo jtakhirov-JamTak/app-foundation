@@ -4,7 +4,7 @@ export function ErrorState({
   code,
   message = "The request could not be completed.",
   requestId,
-  onRetry
+  onRetry,
 }: {
   code: string;
   message?: string;

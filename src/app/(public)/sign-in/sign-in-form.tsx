@@ -10,7 +10,7 @@ import { createBrowserSupabaseClient } from "@/lib/supabase/client";
 
 const credentialsSchema = z.object({
   email: z.email().max(254),
-  password: z.string().min(8).max(128)
+  password: z.string().min(8).max(128),
 });
 
 export function SignInForm() {
@@ -21,13 +21,13 @@ export function SignInForm() {
   const [message, setMessage] = useState<string | null>(() =>
     searchParams.get("error") === "confirmation"
       ? "The confirmation link was invalid or expired. Request a new one."
-      : null
+      : null,
   );
 
   async function submit(formData: FormData) {
     const parsed = credentialsSchema.safeParse({
       email: formData.get("email"),
-      password: formData.get("password")
+      password: formData.get("password"),
     });
 
     if (!parsed.success) {

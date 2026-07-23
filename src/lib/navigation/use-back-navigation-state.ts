@@ -10,7 +10,7 @@ export function clearBackNavigationState(): void {
 
 export function useBackNavigationState<T>(
   key: string,
-  initialValue: T
+  initialValue: T,
 ): readonly [T, (value: T) => void] {
   const [value, setValue] = useState<T>(() => {
     return memory.has(key) ? (memory.get(key) as T) : initialValue;
@@ -21,7 +21,7 @@ export function useBackNavigationState<T>(
       memory.set(key, next);
       setValue(next);
     },
-    [key]
+    [key],
   );
 
   return [value, update] as const;

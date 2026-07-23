@@ -7,16 +7,16 @@ test.beforeEach(async ({ page }) => {
       contentType: "application/json",
       body: JSON.stringify({
         authenticated: true,
-        user: { id: "11111111-1111-4111-8111-111111111111" }
-      })
-    })
+        user: { id: "11111111-1111-4111-8111-111111111111" },
+      }),
+    }),
   );
 });
 
 test("prefetched primary navigation acknowledges within 100 ms on throttled 4G and back restores scroll", async ({
   page,
   context,
-  browserName
+  browserName,
 }) => {
   test.skip(browserName !== "chromium", "CDP network throttling is Chromium-only");
   const cdp = await context.newCDPSession(page);
@@ -26,7 +26,7 @@ test("prefetched primary navigation acknowledges within 100 ms on throttled 4G a
     latency: 150,
     downloadThroughput: (1.6 * 1024 * 1024) / 8,
     uploadThroughput: (750 * 1024) / 8,
-    connectionType: "cellular4g"
+    connectionType: "cellular4g",
   });
 
   const feedback: number[] = [];

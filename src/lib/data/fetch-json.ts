@@ -21,19 +21,19 @@ const errorEnvelopeSchema = {
       return { success: true as const, data: error };
     }
     return { success: false as const };
-  }
+  },
 };
 
 export async function fetchJson<TSchema extends z.ZodType>(
   input: RequestInfo | URL,
   schema: TSchema,
-  init?: RequestInit
+  init?: RequestInit,
 ): Promise<z.infer<TSchema>> {
   const response = await fetch(input, {
     credentials: "same-origin",
     cache: "no-store",
     ...init,
-    headers: { Accept: "application/json", ...init?.headers }
+    headers: { Accept: "application/json", ...init?.headers },
   });
 
   const payload: unknown = response.status === 204 ? null : await response.json().catch(() => null);
@@ -44,7 +44,7 @@ export async function fetchJson<TSchema extends z.ZodType>(
       response.status,
       parsedError.success ? parsedError.data.code : "REQUEST_FAILED",
       parsedError.success ? parsedError.data.request_id : undefined,
-      parsedError.success ? Boolean(parsedError.data.recoverable) : false
+      parsedError.success ? Boolean(parsedError.data.recoverable) : false,
     );
   }
 

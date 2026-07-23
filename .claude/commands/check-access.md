@@ -41,7 +41,7 @@ For each **mutating** route (`POST` / `PATCH` / `PUT` / `DELETE`):
 3. Rate limit applied — and both a per-minute AND a per-day cap (a per-minute cap alone does not bound daily exfiltration)
 4. Request body parsed against a schema
 5. Access gate matched to the route's tier
-6. All DB queries filter by the *authenticated* principal id, not a client-provided id
+6. All DB queries filter by the _authenticated_ principal id, not a client-provided id
 
 For each **enumeration** GET that lists user-scoped data:
 
@@ -55,13 +55,14 @@ For each **server-rendered gated page**: the access gate is called exactly once,
 ## Step 3 — Per route, verify the exclusions
 
 Routes that should NOT be paywall-gated:
+
 - Auth callback / session refresh
-- The endpoint that *creates* the subscription
+- The endpoint that _creates_ the subscription
 - Pre-payment onboarding writes
 - Webhook receivers (these need signature verification instead)
 - Admin routes (admin helper, not paid gate)
 
-Flag any route that *is* gated but shouldn't be — those break first-touch flows for new users.
+Flag any route that _is_ gated but shouldn't be — those break first-touch flows for new users.
 
 ## Step 4 — Cross-cutting checks
 

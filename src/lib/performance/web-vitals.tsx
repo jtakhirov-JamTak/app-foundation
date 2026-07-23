@@ -37,7 +37,7 @@ export function WebVitalsReporter() {
         value: metric.value,
         rating: metric.rating,
         navigation_type: navigationType(metric.navigationType),
-        screen: screenFromPath(pathnameRef.current)
+        screen: screenFromPath(pathnameRef.current),
       });
     };
 

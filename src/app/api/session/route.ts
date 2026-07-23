@@ -13,25 +13,25 @@ export async function GET() {
     if (error) {
       return NextResponse.json(
         { authenticated: false },
-        { status: 503, headers: { "Cache-Control": "no-store" } }
+        { status: 503, headers: { "Cache-Control": "no-store" } },
       );
     }
 
     if (!userId) {
       return NextResponse.json(
         { authenticated: false },
-        { status: 401, headers: { "Cache-Control": "no-store" } }
+        { status: 401, headers: { "Cache-Control": "no-store" } },
       );
     }
 
     return NextResponse.json(
       { authenticated: true, user: { id: userId } },
-      { headers: { "Cache-Control": "no-store" } }
+      { headers: { "Cache-Control": "no-store" } },
     );
   } catch {
     return NextResponse.json(
       { authenticated: false },
-      { status: 503, headers: { "Cache-Control": "no-store" } }
+      { status: 503, headers: { "Cache-Control": "no-store" } },
     );
   }
 }

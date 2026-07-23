@@ -27,14 +27,18 @@ for (const path of sourceFiles) {
     /from\s+["'](?:@sentry|posthog|segment|mixpanel)/.test(text) &&
     !path.endsWith("vendor-adapter.ts")
   ) {
-    throw new Error(`Telemetry vendor imported outside the optional adapter: ${relative(process.cwd(), path)}`);
+    throw new Error(
+      `Telemetry vendor imported outside the optional adapter: ${relative(process.cwd(), path)}`,
+    );
   }
 
   for (const match of text.matchAll(/\btrackEvent\s*\(\s*([^,\n]+)/g)) {
     const argument = match[1]?.trim() ?? "";
     const literal = argument.match(/^["']([a-z][a-z0-9_]*)["']$/);
     if (!literal) {
-      throw new Error(`Dynamic or non-literal trackEvent name in ${relative(process.cwd(), path)}: ${argument}`);
+      throw new Error(
+        `Dynamic or non-literal trackEvent name in ${relative(process.cwd(), path)}: ${argument}`,
+      );
     }
     eventNames.add(literal[1]);
   }
@@ -44,13 +48,15 @@ const migrations = (
   await Promise.all(
     (await readdir(join(process.cwd(), "supabase/migrations")))
       .filter((file) => file.endsWith(".sql"))
-      .map((file) => readFile(join(process.cwd(), "supabase/migrations", file), "utf8"))
+      .map((file) => readFile(join(process.cwd(), "supabase/migrations", file), "utf8")),
   )
 ).join("\n");
 
 for (const eventName of eventNames) {
   if (!migrations.includes(`'${eventName}'`)) {
-    throw new Error(`Tracked event is missing from the database allowlist migrations: ${eventName}`);
+    throw new Error(
+      `Tracked event is missing from the database allowlist migrations: ${eventName}`,
+    );
   }
 }
 

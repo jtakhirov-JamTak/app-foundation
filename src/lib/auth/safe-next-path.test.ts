@@ -7,7 +7,7 @@ describe("safeNextPath", () => {
     "rejects unsafe redirect %s",
     (value) => {
       expect(safeNextPath(value)).toBe("/");
-    }
+    },
   );
 
   it("keeps an internal path", () => {

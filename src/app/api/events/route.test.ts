@@ -5,13 +5,13 @@ import { AppError } from "@/lib/errors/app-error";
 const mocks = vi.hoisted(() => ({
   requireUser: vi.fn(),
   limitUser: vi.fn(),
-  createServerSupabaseClient: vi.fn()
+  createServerSupabaseClient: vi.fn(),
 }));
 
 vi.mock("@/lib/auth/require-user", () => ({ requireUser: mocks.requireUser }));
 vi.mock("@/lib/rate-limit", () => ({ limitUser: mocks.limitUser }));
 vi.mock("@/lib/supabase/server", () => ({
-  createServerSupabaseClient: mocks.createServerSupabaseClient
+  createServerSupabaseClient: mocks.createServerSupabaseClient,
 }));
 
 import { POST } from "./route";
@@ -21,7 +21,7 @@ const validEvent = {
   properties: { screen: "home" },
   platform: "web",
   app_version: "test",
-  occurred_at: "2026-07-21T00:00:00.000Z"
+  occurred_at: "2026-07-21T00:00:00.000Z",
 };
 
 function request(body: unknown, origin = "https://app.example") {
@@ -30,9 +30,9 @@ function request(body: unknown, origin = "https://app.example") {
     headers: {
       "Content-Type": "application/json",
       Origin: origin,
-      Host: "app.example"
+      Host: "app.example",
     },
-    body: JSON.stringify(body)
+    body: JSON.stringify(body),
   });
 }
 
@@ -53,7 +53,7 @@ describe("events API boundary", () => {
 
   it("rejects sensitive property keys", async () => {
     const response = await POST(
-      request({ ...validEvent, properties: { email: "private@example.invalid" } })
+      request({ ...validEvent, properties: { email: "private@example.invalid" } }),
     );
     expect(response.status).toBe(422);
     expect(mocks.createServerSupabaseClient).not.toHaveBeenCalled();
@@ -77,17 +77,17 @@ describe("events API boundary", () => {
     expect(insert).toHaveBeenCalledWith(
       expect.objectContaining({
         user_id: "11111111-1111-4111-8111-111111111111",
-        event_name: "screen_viewed"
-      })
+        event_name: "screen_viewed",
+      }),
     );
   });
 
   it("sanitizes database failures", async () => {
     const insert = vi.fn().mockResolvedValue({
-      error: { code: "XX000", message: "private database detail" }
+      error: { code: "XX000", message: "private database detail" },
     });
     mocks.createServerSupabaseClient.mockResolvedValue({
-      from: vi.fn().mockReturnValue({ insert })
+      from: vi.fn().mockReturnValue({ insert }),
     });
 
     const response = await POST(request(validEvent));

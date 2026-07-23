@@ -2,7 +2,7 @@ import { expect, test } from "@playwright/test";
 
 test("mobile cold launch and scripted interaction stay within Web Vitals budgets", async ({
   page,
-  browserName
+  browserName,
 }) => {
   test.skip(browserName !== "chromium", "Event Timing is checked in Chromium");
 
@@ -11,7 +11,7 @@ test("mobile cold launch and scripted interaction stay within Web Vitals budgets
     const lcpValues: number[] = [];
     Object.defineProperty(window, "__eventDurations", {
       value: eventDurations,
-      configurable: true
+      configurable: true,
     });
     Object.defineProperty(window, "__lcpValues", { value: lcpValues, configurable: true });
 
@@ -21,11 +21,13 @@ test("mobile cold launch and scripted interaction stay within Web Vitals budgets
           eventDurations.push(entry.duration);
         }
       }
-    }).observe(
-      { type: "event", buffered: true, durationThreshold: 16 } as PerformanceObserverInit & {
-        durationThreshold: number;
-      }
-    );
+    }).observe({
+      type: "event",
+      buffered: true,
+      durationThreshold: 16,
+    } as PerformanceObserverInit & {
+      durationThreshold: number;
+    });
 
     new PerformanceObserver((list) => {
       for (const entry of list.getEntries()) lcpValues.push(entry.startTime);
@@ -38,9 +40,9 @@ test("mobile cold launch and scripted interaction stay within Web Vitals budgets
       contentType: "application/json",
       body: JSON.stringify({
         authenticated: true,
-        user: { id: "11111111-1111-4111-8111-111111111111" }
-      })
-    })
+        user: { id: "11111111-1111-4111-8111-111111111111" },
+      }),
+    }),
   );
   await page.route("**/api/events", (route) => route.fulfill({ status: 204, body: "" }));
 
@@ -59,7 +61,8 @@ test("mobile cold launch and scripted interaction stay within Web Vitals budgets
   await page.waitForTimeout(250);
 
   const inp = await page.evaluate(() => {
-    const values = (window as typeof window & { __eventDurations?: number[] }).__eventDurations ?? [];
+    const values =
+      (window as typeof window & { __eventDurations?: number[] }).__eventDurations ?? [];
     return values.length ? Math.max(...values) : 0;
   });
   expect(inp).toBeLessThanOrEqual(200);

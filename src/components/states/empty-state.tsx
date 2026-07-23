@@ -3,7 +3,7 @@ import type { ReactNode } from "react";
 export function EmptyState({
   title,
   description,
-  action
+  action,
 }: {
   title: string;
   description: string;

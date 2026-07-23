@@ -7,9 +7,9 @@ test.beforeEach(async ({ page }) => {
       contentType: "application/json",
       body: JSON.stringify({
         authenticated: true,
-        user: { id: "11111111-1111-4111-8111-111111111111" }
-      })
-    })
+        user: { id: "11111111-1111-4111-8111-111111111111" },
+      }),
+    }),
   );
   await page.route("**/api/events", (route) => route.fulfill({ status: 204, body: "" }));
 });
@@ -28,7 +28,7 @@ test("example creates domain data and tracks only the typed creation event", asy
       await route.fulfill({
         status: 200,
         contentType: "application/json",
-        body: JSON.stringify({ records })
+        body: JSON.stringify({ records }),
       });
       return;
     }
@@ -37,13 +37,13 @@ test("example creates domain data and tracks only the typed creation event", asy
     const record = {
       id: "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
       title: payload.title,
-      created_at: new Date().toISOString()
+      created_at: new Date().toISOString(),
     };
     records.unshift(record);
     await route.fulfill({
       status: 201,
       contentType: "application/json",
-      body: JSON.stringify({ record })
+      body: JSON.stringify({ record }),
     });
   });
 
@@ -57,19 +57,19 @@ test("example creates domain data and tracks only the typed creation event", asy
       typeof value === "object" &&
       value !== null &&
       "event_name" in value &&
-      value.event_name === "example_record_created"
+      value.event_name === "example_record_created",
   );
   expect(creationEvent).toEqual(
     expect.objectContaining({
       event_name: "example_record_created",
-      properties: { source: "example_form" }
-    })
+      properties: { source: "example_form" },
+    }),
   );
   expect(JSON.stringify(creationEvent)).not.toContain("Saved record");
 });
 
 test("SWR cache restores records while back-navigation revalidation is still pending", async ({
-  page
+  page,
 }) => {
   let reads = 0;
   let releaseRevalidation: (() => void) | undefined;
@@ -79,7 +79,7 @@ test("SWR cache restores records while back-navigation revalidation is still pen
   const record = {
     id: "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
     title: "Cached record",
-    created_at: new Date().toISOString()
+    created_at: new Date().toISOString(),
   };
 
   await page.route("**/api/example-records", async (route) => {
@@ -88,7 +88,7 @@ test("SWR cache restores records while back-navigation revalidation is still pen
     await route.fulfill({
       status: 200,
       contentType: "application/json",
-      body: JSON.stringify({ records: [record] })
+      body: JSON.stringify({ records: [record] }),
     });
   });
 
@@ -109,7 +109,7 @@ test("failed save preserves input and offers retry", async ({ page }) => {
       await route.fulfill({
         status: 200,
         contentType: "application/json",
-        body: JSON.stringify({ records: [] })
+        body: JSON.stringify({ records: [] }),
       });
       return;
     }
@@ -117,8 +117,8 @@ test("failed save preserves input and offers retry", async ({ page }) => {
       status: 503,
       contentType: "application/json",
       body: JSON.stringify({
-        error: { code: "EXAMPLE_SAVE_FAILED", request_id: "request-1", recoverable: true }
-      })
+        error: { code: "EXAMPLE_SAVE_FAILED", request_id: "request-1", recoverable: true },
+      }),
     });
   });
 
@@ -137,8 +137,8 @@ test("unsaved form state survives in-app back navigation", async ({ page }) => {
     route.fulfill({
       status: 200,
       contentType: "application/json",
-      body: JSON.stringify({ records: [] })
-    })
+      body: JSON.stringify({ records: [] }),
+    }),
   );
 
   await page.goto("/example");
@@ -154,8 +154,8 @@ test("offline state prevents sensitive writes", async ({ page, context }) => {
     route.fulfill({
       status: 200,
       contentType: "application/json",
-      body: JSON.stringify({ records: [] })
-    })
+      body: JSON.stringify({ records: [] }),
+    }),
   );
 
   await page.goto("/example");
@@ -171,8 +171,8 @@ test("unauthorized example request redirects to sign in", async ({ page }) => {
     route.fulfill({
       status: 401,
       contentType: "application/json",
-      body: JSON.stringify({ authenticated: false })
-    })
+      body: JSON.stringify({ authenticated: false }),
+    }),
   );
 
   await page.goto("/example");

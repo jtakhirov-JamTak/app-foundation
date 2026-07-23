@@ -5,7 +5,7 @@ const userId = "11111111-1111-4111-8111-111111111111";
 function authenticatedSession() {
   return {
     authenticated: true,
-    user: { id: userId }
+    user: { id: userId },
   } as const;
 }
 
@@ -19,7 +19,7 @@ test("safe shell paints before session verification and analytics", async ({ pag
     await route.fulfill({
       status: 200,
       contentType: "application/json",
-      body: JSON.stringify(authenticatedSession())
+      body: JSON.stringify(authenticatedSession()),
     });
   });
 
@@ -37,7 +37,7 @@ test("safe shell paints before session verification and analytics", async ({ pag
 });
 
 test("unauthenticated and expired sessions redirect without exposing protected content", async ({
-  page
+  page,
 }) => {
   let calls = 0;
   await page.route("**/api/session", (route) => {
@@ -45,7 +45,7 @@ test("unauthenticated and expired sessions redirect without exposing protected c
     return route.fulfill({
       status: calls === 1 ? 200 : 401,
       contentType: "application/json",
-      body: JSON.stringify(calls === 1 ? authenticatedSession() : { authenticated: false })
+      body: JSON.stringify(calls === 1 ? authenticatedSession() : { authenticated: false }),
     });
   });
   await page.route("**/api/events", (route) => route.fulfill({ status: 204, body: "" }));
@@ -63,12 +63,12 @@ test("sign out clears the protected shell and redirects", async ({ page }) => {
     route.fulfill({
       status: 200,
       contentType: "application/json",
-      body: JSON.stringify(authenticatedSession())
-    })
+      body: JSON.stringify(authenticatedSession()),
+    }),
   );
   await page.route("**/api/events", (route) => route.fulfill({ status: 204, body: "" }));
   await page.route("https://example.supabase.co/**", (route) =>
-    route.fulfill({ status: 204, body: "" })
+    route.fulfill({ status: 204, body: "" }),
   );
 
   await page.goto("/settings");
@@ -97,17 +97,17 @@ test("password login reaches the protected shell", async ({ page }) => {
           identities: [],
           created_at: new Date().toISOString(),
           updated_at: new Date().toISOString(),
-          is_anonymous: false
-        }
-      })
-    })
+          is_anonymous: false,
+        },
+      }),
+    }),
   );
   await page.route("**/api/session", (route) =>
     route.fulfill({
       status: 200,
       contentType: "application/json",
-      body: JSON.stringify(authenticatedSession())
-    })
+      body: JSON.stringify(authenticatedSession()),
+    }),
   );
   await page.route("**/api/events", (route) => route.fulfill({ status: 204, body: "" }));
 

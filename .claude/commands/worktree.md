@@ -48,6 +48,7 @@ Recommend (don't run unless the user asks) the install command for the project (
 ## Step 6 — Confirm
 
 Report:
+
 - New worktree path
 - New branch name
 - Env files copied (list each)

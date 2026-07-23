@@ -11,21 +11,21 @@ import { usePrimarySwipe } from "@/lib/navigation/use-primary-swipe";
 import { screenFromPath } from "@/lib/analytics/screen-registry";
 import {
   markNavigationStart,
-  reportNavigationFeedback
+  reportNavigationFeedback,
 } from "@/lib/performance/navigation-metrics";
 
 import { useSession } from "./session-provider";
 
 const PRIMARY_ROUTES = [
   { href: "/", label: "Home" },
-  { href: "/settings", label: "Settings" }
+  { href: "/settings", label: "Settings" },
 ] as const;
 const PRIMARY_PATHS = PRIMARY_ROUTES.map((route) => route.href);
 
 function NavContent({
   label,
   active,
-  destination
+  destination,
 }: {
   label: string;
   active: boolean;
@@ -41,9 +41,7 @@ function NavContent({
   return (
     <span
       className={`flex min-h-14 min-w-24 items-center justify-center rounded-2xl px-4 text-sm font-bold transition-colors duration-150 ${
-        selected
-          ? "bg-[var(--text)] text-white"
-          : "text-[var(--text-muted)]"
+        selected ? "bg-[var(--text)] text-white" : "text-[var(--text-muted)]"
       }`}
     >
       {label}

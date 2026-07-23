@@ -8,8 +8,8 @@ describe("analytics privacy", () => {
       assertSafeEventProperties({
         screen: "home",
         feedback_ms: 42,
-        recoverable: true
-      })
+        recoverable: true,
+      }),
     ).not.toThrow();
   });
 
@@ -17,7 +17,7 @@ describe("analytics privacy", () => {
     "rejects prohibited key %s",
     (key) => {
       expect(() => assertSafeEventProperties({ [key]: "value" })).toThrow();
-    }
+    },
   );
 
   it("rejects nested properties", () => {

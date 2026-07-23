@@ -34,10 +34,7 @@ export async function GET(request: Request) {
 
   if (error) return apiError("EXAMPLE_LOAD_FAILED", 503, true, id);
 
-  return NextResponse.json(
-    { records: data },
-    { headers: { "Cache-Control": "no-store" } }
-  );
+  return NextResponse.json({ records: data }, { headers: { "Cache-Control": "no-store" } });
 }
 
 export async function POST(request: Request) {
@@ -73,7 +70,7 @@ export async function POST(request: Request) {
   const supabase = await createServerSupabaseClient<ExampleDatabase>();
   const { data, error } = await supabase.rpc("create_example_record", {
     p_title: parsed.data.title,
-    p_idempotency_key: parsed.data.idempotency_key
+    p_idempotency_key: parsed.data.idempotency_key,
   });
 
   const record = data?.[0];
@@ -84,9 +81,9 @@ export async function POST(request: Request) {
       record: {
         id: record.id,
         title: record.title,
-        created_at: record.created_at
-      }
+        created_at: record.created_at,
+      },
     },
-    { status: 201, headers: { "Cache-Control": "no-store" } }
+    { status: 201, headers: { "Cache-Control": "no-store" } },
   );
 }
