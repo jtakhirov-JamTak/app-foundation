@@ -1,9 +1,13 @@
 import { expect, test } from "@playwright/test";
 
+test.use({ serviceWorkers: "allow" });
+
 test("service worker serves the repeat-open shell and never caches API responses", async ({
   page,
   context,
+  browserName,
 }) => {
+  test.skip(browserName !== "chromium", "Playwright service-worker support is Chromium-only");
   await page.route("**/api/session", (route) =>
     route.fulfill({
       status: 200,

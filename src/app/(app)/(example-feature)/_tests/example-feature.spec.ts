@@ -16,7 +16,7 @@ test.beforeEach(async ({ page }) => {
 
 test("example creates domain data and tracks only the typed creation event", async ({ page }) => {
   const records: Array<{ id: string; title: string; created_at: string }> = [];
-  const events: unknown[] = [];
+  const events: Array<Record<string, unknown>> = [];
   await page.unroute("**/api/events");
   await page.route("**/api/events", async (route) => {
     events.push(route.request().postDataJSON());
@@ -51,20 +51,15 @@ test("example creates domain data and tracks only the typed creation event", asy
   await page.getByLabel("Record title").fill("Saved record");
   await page.getByRole("button", { name: "Save" }).click();
   await expect(page.getByText("Saved record")).toBeVisible();
-  await expect.poll(() => events.length).toBeGreaterThan(0);
-  const creationEvent = events.find(
-    (value) =>
-      typeof value === "object" &&
-      value !== null &&
-      "event_name" in value &&
-      value.event_name === "example_record_created",
-  );
-  expect(creationEvent).toEqual(
-    expect.objectContaining({
-      event_name: "example_record_created",
-      properties: { source: "example_form" },
-    }),
-  );
+  await expect
+    .poll(() => events.find((v) => v.event_name === "example_record_created"))
+    .toEqual(
+      expect.objectContaining({
+        event_name: "example_record_created",
+        properties: { source: "example_form" },
+      }),
+    );
+  const creationEvent = events.find((v) => v.event_name === "example_record_created");
   expect(JSON.stringify(creationEvent)).not.toContain("Saved record");
 });
 
@@ -97,9 +92,12 @@ test("SWR cache restores records while back-navigation revalidation is still pen
   await page.getByRole("link", { name: "Settings" }).click();
   await expect(page.getByRole("heading", { name: "Settings" })).toBeVisible();
 
+  // Outlast SWR's dedupingInterval (2s in app-providers) so the remount
+  // revalidation on back-navigation is not deduped away.
+  await page.waitForTimeout(2_100);
   await page.goBack({ waitUntil: "commit" });
   await expect(page.getByText("Cached record")).toBeVisible();
-  expect(reads).toBeGreaterThan(1);
+  await expect.poll(() => reads).toBeGreaterThan(1);
   releaseRevalidation?.();
 });
 
@@ -127,7 +125,9 @@ test("failed save preserves input and offers retry", async ({ page }) => {
   await input.fill("Keep this");
   await page.getByRole("button", { name: "Save" }).click();
 
-  await expect(page.getByRole("alert")).toContainText("Save failed");
+  await expect(page.getByRole("alert").filter({ hasText: "Save failed" })).toContainText(
+    "Save failed",
+  );
   await expect(input).toHaveValue("Keep this");
   await expect(page.getByRole("button", { name: "Try save again" })).toBeVisible();
 });

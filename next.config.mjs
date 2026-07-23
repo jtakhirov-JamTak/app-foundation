@@ -23,6 +23,10 @@ const withSerwist = withSerwistInit({
     /_buildManifest\.js$/,
     /_ssgManifest\.js$/,
     /server\/app\/.*\.rsc$/,
+    // Route handlers emit stub client chunks (e.g. chunks/app/api/session/
+    // route-*.js) that the client never loads; keep every /api/ path out of
+    // the precache manifest.
+    /\/api\//,
   ],
 });
 

@@ -16,7 +16,10 @@ export default defineConfig({
     baseURL,
     trace: "on-first-retry",
     screenshot: "only-on-failure",
-    serviceWorkers: "allow",
+    // page.route mocks are bypassed once a service worker controls the page
+    // (clientsClaim fires mid-test), so app-logic specs run without workers.
+    // e2e/service-worker.spec.ts re-enables them to test SW behavior itself.
+    serviceWorkers: "block",
   },
   projects: [
     {

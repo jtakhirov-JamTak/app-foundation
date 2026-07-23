@@ -31,6 +31,9 @@ test("safe shell paints before session verification and analytics", async ({ pag
   await expect(page.locator("[data-safe-shell]")).toBeVisible();
   await expect(page.getByRole("navigation").locator(".skeleton")).toHaveCount(2);
 
+  // The session request may not have fired yet; resolving before the route
+  // callback runs would leave the request blocked forever.
+  await expect.poll(() => resolveSession !== undefined).toBe(true);
   resolveSession?.();
   await expect(page.getByText("The protected shell is ready")).toBeVisible();
   await expect(page.getByRole("link", { name: "Settings" })).toBeVisible();
