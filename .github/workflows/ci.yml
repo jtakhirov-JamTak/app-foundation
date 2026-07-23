@@ -64,8 +64,18 @@ jobs:
           node-version: 22
       - run: npm ci --no-audit --no-fund
       - run: npx playwright install --with-deps chromium webkit
-      - run: npm run build
-      - run: npm run test:e2e
+      - run: npx supabase start
+      - run: npx supabase db reset
+      # The workflow-level placeholder keys are rejected by the real local
+      # stack, so build and test with the started stack's credentials.
+      - name: Build and run e2e against the local Supabase stack
+        run: |
+          STATUS="$(npx supabase status -o json)"
+          export NEXT_PUBLIC_SUPABASE_URL="$(echo "$STATUS" | jq -r .API_URL)"
+          export NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY="$(echo "$STATUS" | jq -r .PUBLISHABLE_KEY)"
+          export SUPABASE_SECRET_KEY="$(echo "$STATUS" | jq -r .SECRET_KEY)"
+          npm run build
+          npm run test:e2e
 
   performance-pwa:
     runs-on: ubuntu-latest

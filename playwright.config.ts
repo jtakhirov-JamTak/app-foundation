@@ -6,6 +6,7 @@ const baseURL = `http://127.0.0.1:${port}`;
 export default defineConfig({
   testDir: ".",
   testMatch: ["e2e/**/*.spec.ts", "src/app/**/_tests/**/*.spec.ts"],
+  globalSetup: "./e2e/global-setup.ts",
   fullyParallel: false,
   forbidOnly: Boolean(process.env.CI),
   retries: process.env.CI ? 1 : 0,
@@ -15,17 +16,17 @@ export default defineConfig({
     baseURL,
     trace: "on-first-retry",
     screenshot: "only-on-failure",
-    serviceWorkers: "allow"
+    serviceWorkers: "allow",
   },
   projects: [
     {
       name: "mobile-chromium",
-      use: { ...devices["Pixel 7"] }
+      use: { ...devices["Pixel 7"] },
     },
     {
       name: "mobile-webkit",
-      use: { ...devices["iPhone 15"] }
-    }
+      use: { ...devices["iPhone 15"] },
+    },
   ],
   webServer: {
     command: `npm run start -- -p ${port}`,
@@ -44,10 +45,9 @@ export default defineConfig({
       APP_ENV: "test",
       SUPABASE_SECRET_KEY:
         process.env.SUPABASE_SECRET_KEY ?? "sb_secret_test_000000000000000000000000000000",
-      UPSTASH_REDIS_REST_URL:
-        process.env.UPSTASH_REDIS_REST_URL ?? "https://example.upstash.io",
+      UPSTASH_REDIS_REST_URL: process.env.UPSTASH_REDIS_REST_URL ?? "https://example.upstash.io",
       UPSTASH_REDIS_REST_TOKEN:
-        process.env.UPSTASH_REDIS_REST_TOKEN ?? "test-token-000000000000000000000000"
-    }
-  }
+        process.env.UPSTASH_REDIS_REST_TOKEN ?? "test-token-000000000000000000000000",
+    },
+  },
 });
