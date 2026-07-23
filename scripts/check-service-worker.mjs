@@ -1,5 +1,9 @@
 import { readFile } from "node:fs/promises";
 
+import { loadEnvLocal } from "./load-env-local.mjs";
+
+loadEnvLocal();
+
 const generated = await readFile("public/sw.js", "utf8");
 const appId = process.env.NEXT_PUBLIC_APP_ID ?? "application";
 const version = process.env.NEXT_PUBLIC_APP_VERSION;

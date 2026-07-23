@@ -1,10 +1,14 @@
+import { loadEnvLocal } from "./load-env-local.mjs";
+
+loadEnvLocal();
+
 const required = [
   "NEXT_PUBLIC_APP_ID",
   "NEXT_PUBLIC_APP_VERSION",
   "NEXT_PUBLIC_SUPABASE_URL",
   "NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY",
   "APP_ENV",
-  "SUPABASE_SECRET_KEY"
+  "SUPABASE_SECRET_KEY",
 ];
 
 const missing = required.filter((name) => !process.env[name]?.trim());
