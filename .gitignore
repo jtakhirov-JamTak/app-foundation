@@ -1,0 +1,33 @@
+# dependencies
+/node_modules
+
+# Next.js
+/.next/
+/out/
+
+# generated service worker
+/public/sw.js
+/public/sw.js.map
+/public/swe-worker-*.js
+
+# tests
+/coverage/
+/playwright-report/
+/test-results/
+/.lighthouseci/
+
+# environment
+.env
+.env.*
+!.env.example
+
+# local Supabase
+/supabase/.branches
+/supabase/.temp
+
+# logs and OS
+*.log
+.DS_Store
+
+# TypeScript
+*.tsbuildinfo

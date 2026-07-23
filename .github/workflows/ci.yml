@@ -1,0 +1,98 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  NEXT_PUBLIC_APP_ID: test-application
+  NEXT_PUBLIC_APP_VERSION: ci-${{ github.sha }}
+  NEXT_PUBLIC_SUPABASE_URL: http://127.0.0.1:54321
+  NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: sb_publishable_ci_000000000000000000000000000000
+  APP_ENV: test
+  SUPABASE_SECRET_KEY: sb_secret_ci_000000000000000000000000000000
+  UPSTASH_REDIS_REST_URL: https://example.upstash.io
+  UPSTASH_REDIS_REST_TOKEN: ci-token-not-used-000000000000000000
+
+jobs:
+  quality:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npm ci --no-audit --no-fund
+      - run: npm run format:check
+      - run: npm run typecheck
+      - run: npm run lint
+      - run: npm run test
+      - run: npm run build
+      - run: npm run check:bundle
+      - run: npm run check:sw
+      - run: npm run check:secrets
+      - run: npm run check:analytics
+      - run: npm run verify:example-removal
+
+  database:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npm ci --no-audit --no-fund
+      - run: npx supabase start
+      - run: npx supabase db reset
+      - run: npm run db:test
+      - run: npx supabase gen types typescript --local --schema public > /tmp/database.ts
+      - run: node scripts/check-generated-types.mjs /tmp/database.ts
+
+  mobile-e2e:
+    runs-on: ubuntu-latest
+    needs: quality
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npm ci --no-audit --no-fund
+      - run: npx playwright install --with-deps chromium webkit
+      - run: npm run build
+      - run: npm run test:e2e
+
+  performance-pwa:
+    runs-on: ubuntu-latest
+    needs: quality
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npm ci --no-audit --no-fund
+      - run: npm run verify:sw-version-bust
+      - run: npm run check:sw
+      - run: npx playwright install --with-deps chromium
+      - run: npm run test:e2e:chromium -- e2e/service-worker.spec.ts
+      - run: npx lhci autorun
+
+  security:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npm ci --no-audit --no-fund
+      - run: npm audit --audit-level=high
+      - run: npm run check:secrets
+      - run: npm run check:analytics

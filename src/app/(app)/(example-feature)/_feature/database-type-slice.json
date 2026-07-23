@@ -1,0 +1,5 @@
+{
+  "output": "database.generated.ts",
+  "tables": ["example_records"],
+  "functions": ["create_example_record"]
+}
