@@ -34,3 +34,4 @@
 
 # Claude Code local state
 .claude/settings.local.json
+/session-context.md
