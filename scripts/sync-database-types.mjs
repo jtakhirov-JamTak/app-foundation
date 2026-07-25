@@ -15,12 +15,13 @@ function nameOf(node) {
   throw new Error(`Unsupported database property: ${node.getText()}`);
 }
 
-function property(typeNode, name) {
+function property(typeNode, name, { optional = false } = {}) {
   if (!ts.isTypeLiteralNode(typeNode)) throw new Error(`Expected type literal for ${name}`);
   const member = typeNode.members.find(
     (candidate) => ts.isPropertySignature(candidate) && nameOf(candidate.name) === name,
   );
   if (!member || !ts.isPropertySignature(member) || !member.type) {
+    if (optional) return null;
     throw new Error(`Generated database types are missing ${name}`);
   }
   return member;
@@ -55,7 +56,9 @@ function buildOutput(raw, selectTable, selectFunction, banner = "") {
     throw new Error("Supabase output does not contain Json and Database type aliases");
   }
 
-  const internal = property(databaseAlias.type, "__InternalSupabase");
+  // Emitted by some Supabase CLI versions and absent in others; carry it
+  // through when present rather than requiring it.
+  const internal = property(databaseAlias.type, "__InternalSupabase", { optional: true });
   const publicMember = property(databaseAlias.type, "public");
   const tables = property(publicMember.type, "Tables");
   const views = property(publicMember.type, "Views");
@@ -66,10 +69,9 @@ function buildOutput(raw, selectTable, selectFunction, banner = "") {
   const tableText = selectedTypeLiteral(tables.type, sourceFile, selectTable);
   const functionText = selectedTypeLiteral(functions.type, sourceFile, selectFunction);
 
-  return `${banner}${jsonAlias.getText(sourceFile)}\n\nexport type Database = {\n${indent(
-    internal.getText(sourceFile),
-    2,
-  )}\n  public: {\n    Tables: ${indent(tableText, 4).trimStart()}\n${indent(
+  const internalText = internal ? `${indent(internal.getText(sourceFile), 2)}\n` : "";
+
+  return `${banner}${jsonAlias.getText(sourceFile)}\n\nexport type Database = {\n${internalText}  public: {\n    Tables: ${indent(tableText, 4).trimStart()}\n${indent(
     views.getText(sourceFile),
     4,
   )}\n    Functions: ${indent(functionText, 4).trimStart()}\n${indent(
@@ -82,11 +84,21 @@ function generatedText() {
   const inputPath = process.argv[2];
   if (inputPath && !inputPath.startsWith("--")) return readFile(inputPath, "utf8");
 
+  // spawnSync can't launch the CLI's .cmd shim on Windows without a shell; the
+  // command and args are fixed literals, so shell interpolation is not a risk.
   const result = spawnSync(
-    "supabase",
-    ["gen", "types", "typescript", "--local", "--schema", "public"],
-    { encoding: "utf8", stdio: ["ignore", "pipe", "inherit"] },
+    "npx",
+    ["--no-install", "supabase", "gen", "types", "typescript", "--local", "--schema", "public"],
+    {
+      encoding: "utf8",
+      stdio: ["ignore", "pipe", "inherit"],
+      shell: process.platform === "win32",
+    },
   );
+  if (result.error) {
+    console.error(result.error);
+    throw new Error("Supabase type generation failed");
+  }
   if (result.status !== 0 || !result.stdout) {
     throw new Error("Supabase type generation failed");
   }
