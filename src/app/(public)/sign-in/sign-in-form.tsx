@@ -6,7 +6,6 @@ import { useState } from "react";
 import { z } from "zod";
 
 import { safeNextPath } from "@/lib/auth/safe-next-path";
-import { createBrowserSupabaseClient } from "@/lib/supabase/client";
 
 const credentialsSchema = z.object({
   email: z.email().max(254),
@@ -39,6 +38,9 @@ export function SignInForm() {
     setStatus("pending");
     setMessage(null);
 
+    // Loaded via dynamic import only: a static import would chain @supabase/ssr
+    // into the sign-in page's first-paint chunks, and it is only needed on submit.
+    const { createBrowserSupabaseClient } = await import("@/lib/supabase/client");
     const supabase = createBrowserSupabaseClient();
     const result =
       mode === "sign-in"
