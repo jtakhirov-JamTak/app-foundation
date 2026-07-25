@@ -17,10 +17,20 @@ const baseEnv = {
 };
 
 function build(version) {
+  // spawnSync can't launch npm's .cmd shim on Windows without a shell; the
+  // command and args are fixed literals, so shell interpolation is not a risk.
   const result = spawnSync("npm", ["run", "build"], {
     stdio: "inherit",
-    env: { ...baseEnv, NEXT_PUBLIC_APP_VERSION: version },
+    // The restore build must match a plain `npm run build` exactly, so it
+    // gets untouched process.env and Next resolves .env.local itself;
+    // baseEnv's hermetic defaults would override .env.local values.
+    env: version ? { ...baseEnv, NEXT_PUBLIC_APP_VERSION: version } : process.env,
+    shell: process.platform === "win32",
   });
+  if (result.error) {
+    console.error(result.error);
+    process.exit(1);
+  }
   if (result.status !== 0) process.exit(result.status ?? 1);
 }
 
@@ -35,5 +45,10 @@ const second = await readFile("public/sw.js", "utf8");
 if (!second.includes("cache-contract-v2") || second.includes("cache-contract-v1")) {
   throw new Error("Service-worker cache version did not bust cleanly");
 }
+
+// Rebuild with the ambient version: later steps (check:sw, e2e, Lighthouse)
+// read public/sw.js and .next and must not see the synthetic
+// cache-contract versions this script leaves behind.
+build();
 
 console.log("Service-worker build-version busting verified.");
