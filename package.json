@@ -5,6 +5,13 @@
   "engines": {
     "node": ">=22.0.0"
   },
+  "browserslist": [
+    "chrome >= 111",
+    "edge >= 111",
+    "firefox >= 128",
+    "safari >= 16.4",
+    "ios_saf >= 16.4"
+  ],
   "scripts": {
     "predev": "node scripts/validate-env.mjs",
     "dev": "next dev --webpack",
