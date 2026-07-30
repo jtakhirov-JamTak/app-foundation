@@ -38,3 +38,8 @@
 # Claude Code local state
 .claude/settings.local.json
 /session-context.md
+# Archived session contexts. Same hazard as the line above: Prettier walks
+# untracked files too, so an unformatted note here would fail format:check —
+# the first step of `npm run verify`. Prettier 3 reads .gitignore by default,
+# so ignoring it here excludes it from both git and the format gate.
+/.archive/
