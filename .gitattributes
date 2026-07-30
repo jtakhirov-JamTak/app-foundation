@@ -1,0 +1,9 @@
+# Git for Windows ships core.autocrlf=true by default, which materialises every
+# file with CRLF on clone. Prettier's endOfLine default is "lf", so without this
+# a fresh Windows clone fails `npm run verify` at format:check before the
+# scaffold has changed a single line — see the Foundation Fix Log, 2026-07-30.
+#
+# Normalise to LF in the index and check out LF on every platform regardless of
+# the user's core.autocrlf. Binaries (icons, fonts) are auto-detected by
+# text=auto and left untouched.
+* text=auto eol=lf
