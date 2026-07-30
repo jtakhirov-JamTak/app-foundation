@@ -70,7 +70,9 @@ The template ships `lighthouserc.cjs` measuring `/sign-in` only. In the template
 url: ["http://127.0.0.1:3200/", "http://127.0.0.1:3200/sign-in"],
 ```
 
-plus its own `assertMatrix` entry (`matchingUrlPattern: "http://[^/]+/$"`), calibrated against a real run of _your_ `/` rather than any number inherited from the template. Until you do this, **unauthenticated cold start is unmeasured** — that is the known gap this trade accepted, not an oversight.
+plus its own `assertMatrix` entry (`matchingUrlPattern: "http://[^/]+/$"`), calibrated against a real run of _your_ `/` rather than any number inherited from the template.
+
+Unauthenticated cold start is **not** unmeasured in the meantime: `e2e/performance.spec.ts` asserts LCP ≤ 2.5 s across `/` → redirect → sign-in painted. Doing the step above adds Lighthouse's throttled lab profile on top; it does not close an open hole. If your `/` stops redirecting when unauthenticated, that e2e test is measuring your new page instead — recalibrate it in the same change.
 
 ## 20–27 minutes — tests and development server
 
