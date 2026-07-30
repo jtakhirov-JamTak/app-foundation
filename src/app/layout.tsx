@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import type { ReactNode } from "react";
 
 import { clientEnv } from "@/lib/env/client";
+import { preconnectOrigin } from "@/lib/env/preconnect-origin";
 
 import "./globals.css";
 
@@ -11,7 +12,9 @@ import "./globals.css";
 // handshake off the critical path of the first auth request.
 // `crossOrigin="anonymous"` matches how supabase-js fetches: CORS, no cookies —
 // a mismatched mode would open a connection the real request cannot reuse.
-const supabaseOrigin = new URL(clientEnv.NEXT_PUBLIC_SUPABASE_URL).origin;
+// `preconnectOrigin` returns null for local and placeholder stacks, where there
+// is no handshake to save — see that module for why.
+const supabaseOrigin = preconnectOrigin(clientEnv.NEXT_PUBLIC_SUPABASE_URL);
 
 export const metadata: Metadata = {
   title: {
@@ -40,7 +43,9 @@ export default function RootLayout({ children }: Readonly<{ children: ReactNode 
   return (
     <html lang="en">
       <head>
-        <link rel="preconnect" href={supabaseOrigin} crossOrigin="anonymous" />
+        {supabaseOrigin !== null && (
+          <link rel="preconnect" href={supabaseOrigin} crossOrigin="anonymous" />
+        )}
       </head>
       <body>{children}</body>
     </html>

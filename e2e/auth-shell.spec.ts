@@ -137,6 +137,22 @@ test.describe("sign-in prerender", () => {
     await expect(page.getByRole("button", { name: "Create an account" })).toBeVisible();
     await expect(page.locator(".skeleton")).toHaveCount(0);
   });
+
+  // The root layout preconnects to the Supabase origin, but only when warming it
+  // buys something. Asserts absence rather than presence because every way this
+  // suite runs points at a local or placeholder stack: Playwright's webServer
+  // falls back to the placeholder, a local .env.local overrides it with
+  // 127.0.0.1, and CI's quality job builds against 127.0.0.1. Phrased this way
+  // the test stays correct — and still meaningful — against a real project too.
+  test("no preconnect is emitted for a local or placeholder Supabase stack", async ({ page }) => {
+    await page.goto("/sign-in");
+
+    await expect(
+      page.locator(
+        'link[rel="preconnect"][href*="127.0.0.1"], link[rel="preconnect"][href*="localhost"], link[rel="preconnect"][href*="example.supabase.co"]',
+      ),
+    ).toHaveCount(0);
+  });
 });
 
 test("an invalid confirmation link is explained on the sign-in page", async ({ page }) => {
