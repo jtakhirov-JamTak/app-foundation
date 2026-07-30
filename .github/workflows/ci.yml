@@ -91,6 +91,9 @@ jobs:
       - run: npx playwright install --with-deps chromium
       - run: npm run test:e2e:chromium -- e2e/service-worker.spec.ts
       - run: npx lhci autorun
+      # lhci cannot assert which page it actually landed on; this fails if a
+      # collected URL redirected, so budgets can never describe a different page.
+      - run: npm run check:lighthouse-url
 
   security:
     runs-on: ubuntu-latest

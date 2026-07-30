@@ -4,7 +4,13 @@ module.exports = {
     collect: {
       startServerCommand: "npm run start -- -p 3200",
       startServerReadyPattern: "Ready",
-      url: ["http://127.0.0.1:3200/", "http://127.0.0.1:3200/sign-in"],
+      // `/` is deliberately absent. Unauthenticated `/` client-redirects to
+      // `/sign-in`, so collecting it measured the sign-in page a second time
+      // with a redirect hop attached — duplicate coverage under a misleading
+      // name, and any budget calibrated against it is invalidated the moment
+      // `/` becomes a real page. START_NEW_APP.md carries the scaffold step to
+      // add it back once that happens.
+      url: ["http://127.0.0.1:3200/sign-in"],
       numberOfRuns: 3,
       settings: {
         formFactor: "mobile",
@@ -18,19 +24,9 @@ module.exports = {
       },
     },
     assert: {
+      // Kept as a matrix (rather than a flat `assertions` block) so re-adding a
+      // URL with its own budgets stays purely additive.
       assertMatrix: [
-        {
-          // "/" unauthenticated redirects to /sign-in; LCP includes the redirect hop
-          // and does not represent the signed-in shell cold start. Calibrated
-          // 2026-07-24 against the first real Lighthouse run (median 3098 ms + ~10%).
-          matchingUrlPattern: "http://[^/]+/$",
-          assertions: {
-            "largest-contentful-paint": ["error", { maxNumericValue: 3400 }],
-            "cumulative-layout-shift": ["error", { maxNumericValue: 0.1 }],
-            "total-blocking-time": ["error", { maxNumericValue: 200 }],
-            "categories:performance": ["warn", { minScore: 0.9 }],
-          },
-        },
         {
           matchingUrlPattern: "/sign-in",
           assertions: {

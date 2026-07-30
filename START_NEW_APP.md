@@ -62,6 +62,16 @@ npm run verify:example-removal
 
 No analytics, E2E, database-test, or generated-type edits are required outside those two deleted paths.
 
+### Add `/` to the performance gate once `/` is a real page
+
+The template ships `lighthouserc.cjs` measuring `/sign-in` only. In the template, unauthenticated `/` client-redirects to `/sign-in`, so collecting it measured the same page twice and any budget set on it would be invalidated by this scaffold step. As soon as `/` renders something of its own, add it back:
+
+```js
+url: ["http://127.0.0.1:3200/", "http://127.0.0.1:3200/sign-in"],
+```
+
+plus its own `assertMatrix` entry (`matchingUrlPattern: "http://[^/]+/$"`), calibrated against a real run of _your_ `/` rather than any number inherited from the template. Until you do this, **unauthenticated cold start is unmeasured** — that is the known gap this trade accepted, not an oversight.
+
 ## 20–27 minutes — tests and development server
 
 ```bash
