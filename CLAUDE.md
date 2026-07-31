@@ -21,7 +21,7 @@ Read `ARCHITECTURE.md` before changing auth, security, DB structure, analytics, 
 7. Auth gates protected data and protected navigation — never the shell's first paint.
 8. Smallest change that solves the problem. New dependency = one line in ARCHITECTURE.md.
 9. Any script spawning a CLI must surface `result.error` — silent exit is never
-   acceptable in a gate. (Fix Log, 4 instances.)
+   acceptable in a gate. (`docs/FIX_LOG.md`, 4 instances.)
 
 ## Bugs
 
@@ -37,3 +37,5 @@ Plan mode for non-trivial work. `/save-context` when context fills. `/commit`
 (never `git add -A`); push only on green verify.
 
 Pointers: `.claude/ENGINEERING_PLAYBOOK.md` · `ARCHITECTURE.md` · `.claude/commands/`
+History: `docs/FIX_LOG.md` (defects + regression tests) · `docs/DECISIONS.md` (why, with
+the measurements — check it before re-attempting a rejected optimization)

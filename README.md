@@ -33,7 +33,7 @@ The demonstration feature is one deletable route-group folder plus one migration
 
 The foundation is not a greenfield guess. Every piece is classified in [ARCHITECTURE.md](ARCHITECTURE.md) → _Source provenance_ as copied as-is, copied with changes, or rebuilt cleanly, naming the audited production application it came from — the fail-closed origin guard, the owner-scoped RLS policy shape, and the privileged-client boundary are all carried over rather than reinvented.
 
-The _Foundation Fix Log_ in the same document records every defect found in a real application or in this template's own gates, dated, with the product-neutral fix and the regression test that now guards it. Several entries are gates that passed vacuously — a database test that silently no-opped on Windows, a Lighthouse budget measuring the wrong page. Reading it is the fastest way to judge whether the checks here are load-bearing.
+[docs/FIX_LOG.md](docs/FIX_LOG.md) records every defect found in a real application or in this template's own gates, dated, with the product-neutral fix and the regression test that now guards it. Several entries are gates that passed vacuously — a database test that silently no-opped on Windows, a Lighthouse budget measuring the wrong page. Reading it is the fastest way to judge whether the checks here are load-bearing.
 
 ## Cost of adoption
 
@@ -88,7 +88,9 @@ npm run verify:example-removal
 
 ## Documentation
 
-- [ARCHITECTURE.md](ARCHITECTURE.md) — boundaries, security model, budgets, decision log, and the Foundation Fix Log
+- [ARCHITECTURE.md](ARCHITECTURE.md) — boundaries, security model, data standard, budgets, rejected approaches, and what is explicitly deferred
 - [START_NEW_APP.md](START_NEW_APP.md) — the timed scaffold process for a new application
 - [CLAUDE.md](CLAUDE.md) — project rules and non-negotiables, auto-loaded by Claude Code
 - [.claude/ENGINEERING_PLAYBOOK.md](.claude/ENGINEERING_PLAYBOOK.md) — verification ladder, bug protocol, and definition of done
+- [docs/FIX_LOG.md](docs/FIX_LOG.md) — every foundation defect, its fix, and the regression test guarding it
+- [docs/DECISIONS.md](docs/DECISIONS.md) — why the foundation is built this way, with the measurements

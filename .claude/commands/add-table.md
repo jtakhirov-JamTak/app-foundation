@@ -15,8 +15,8 @@ Required columns on any user-scoped table:
 
 - **Owner FK** — `user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE` (or the project's equivalent). Without cascade, account deletion leaves orphans.
 - **`created_at`** — `TIMESTAMPTZ NOT NULL DEFAULT now()`.
-- **`updated_at`** — `TIMESTAMPTZ NOT NULL DEFAULT now()` (foundation standard: include it; rows almost always mutate eventually).
-- **`archived_at`** — `TIMESTAMPTZ` nullable, for soft delete (foundation standard: archive rather than delete when history has value).
+- **`updated_at`** — `TIMESTAMPTZ NOT NULL DEFAULT now()`, kept current by the canonical trigger, not by application code: `CREATE TRIGGER <table>_set_updated_at BEFORE UPDATE ON public.<table> FOR EACH ROW EXECUTE FUNCTION public.set_updated_at();` (foundation standard: include it; rows almost always mutate eventually).
+- **`archived_at`** — `TIMESTAMPTZ` nullable, for soft delete. Include it whenever archive or delete semantics exist for the entity — for user-facing domain tables that is usually yes (foundation standard: archive rather than delete when history has value).
 - **Indexes** — on every filterable / sortable column. At minimum the owner FK. `(user_id, created_at DESC)` is common.
 
 If the table stores a computed snapshot:
@@ -51,6 +51,14 @@ WITH ranked AS (
 DELETE FROM things WHERE id IN (SELECT id FROM ranked WHERE rn > 1);
 
 CREATE UNIQUE INDEX IF NOT EXISTS things_user_name_uq ON things (user_id, name);
+```
+
+- **Uniqueness on a table with `archived_at`**: if an archived row must not block reuse of its value, filter the index instead of adding a constraint — a plain `UNIQUE` keeps the name reserved forever and users read that as a bug.
+
+```sql
+CREATE UNIQUE INDEX IF NOT EXISTS things_user_name_active_uq
+  ON things (user_id, lower(name))
+  WHERE archived_at IS NULL;
 ```
 
 ## Row-level authorization

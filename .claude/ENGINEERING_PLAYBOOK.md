@@ -47,8 +47,10 @@ report results exactly: passed, failed, or skipped.
 5. Run the template's `npm run verify` (+ `db:test` if migrations or policies changed).
 6. If the fix touches startup, setup docs, auth, PWA/SW, or migrations: scaffold a
    throwaway app and verify the affected path actually works from the template.
-7. Add one entry to the **Foundation Fix Log** in the template's ARCHITECTURE.md:
+7. Add one entry to the **Foundation Fix Log** at the template's `docs/FIX_LOG.md`:
    date/version · problem · generic fix · regression test · which app found it.
+   A rejected optimization also gets a one-line entry under _Rejected approaches_ in
+   `ARCHITECTURE.md`, linking to the evidence.
 8. Tag a patch release using semantic versioning (v1.0.0 → v1.0.1).
 9. Existing apps port the fix manually **only if it matters to them** — no forced syncs.
 10. A bug found directly in the template gets reproduced in a throwaway app before
@@ -62,6 +64,10 @@ report results exactly: passed, failed, or skipped.
 - Domain tables are the source of truth. Analytics events are never business records.
 - Never overwrite data with history value — archive (`archived_at`), don't delete,
   unless the user explicitly deletes. Preserve user input when a request fails.
+  Give an entity `archived_at` whenever archive or delete semantics exist for it; for
+  user-facing domain tables that is usually yes. Where archived rows must not block
+  value reuse, uniqueness becomes a partial unique index filtered on
+  `WHERE archived_at IS NULL` — full rules in ARCHITECTURE.md → _Data standard_.
 - UTC in the database, always. Convert at the edge.
 - Stored computed values carry a version stamp so stale rows can be invalidated by a
   code bump instead of a migration.
@@ -97,6 +103,17 @@ Ship when, and only when:
 
 Everything past that bar goes to the **"Explicitly Deferred"** section of
 `ARCHITECTURE.md` (or a GitHub Issue) — deferral recorded is a decision, not a failure.
+
+## 10. Where the history lives
+
+`ARCHITECTURE.md` describes only what is true now. Two documents hold the record behind
+it, and both are appended to rather than rewritten:
+
+- `docs/FIX_LOG.md` — one dated section per foundation defect, with the product-neutral
+  fix and the regression test that guards it (§4.7).
+- `docs/DECISIONS.md` — one dated section per decision, kept verbatim with the
+  measurements. Read it before re-attempting anything listed under
+  _Rejected approaches_; the experiment has already been run.
 
 ## 9. Session hygiene
 

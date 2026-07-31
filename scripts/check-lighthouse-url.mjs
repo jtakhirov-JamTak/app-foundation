@@ -6,8 +6,8 @@ import { join } from "node:path";
 // audit scores a perfect 1 even when the page measured is not the page
 // requested. Without this check a URL that silently starts redirecting keeps
 // passing its budgets under the wrong name, which is exactly how `/` spent
-// months "covering" the shell while measuring /sign-in (ARCHITECTURE.md
-// Foundation Fix Log, 2026-07-29).
+// months "covering" the shell while measuring /sign-in (docs/FIX_LOG.md,
+// 2026-07-29).
 const REPORT_DIR = ".lighthouseci";
 
 const normalize = (url) => url.replace(/\/$/, "");
