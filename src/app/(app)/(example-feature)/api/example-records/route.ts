@@ -1,6 +1,5 @@
 import { NextResponse } from "next/server";
 
-import type { Database as ExampleDatabase } from "../../_feature/database.generated";
 import { createExampleInputSchema } from "../../_feature/schemas";
 import { requireUser } from "@/lib/auth/require-user";
 import { apiError, apiErrorFromUnknown, requestId } from "@/lib/errors/http";
@@ -23,7 +22,7 @@ export async function GET(request: Request) {
     return apiErrorFromUnknown(error, id);
   }
 
-  const supabase = await createServerSupabaseClient<ExampleDatabase>();
+  const supabase = await createServerSupabaseClient();
   const { data, error } = await supabase
     .from("example_records")
     .select("id,title,created_at")
@@ -67,7 +66,7 @@ export async function POST(request: Request) {
       : apiError("RATE_LIMITED", 429, true, id);
   }
 
-  const supabase = await createServerSupabaseClient<ExampleDatabase>();
+  const supabase = await createServerSupabaseClient();
   const { data, error } = await supabase.rpc("create_example_record", {
     p_title: parsed.data.title,
     p_idempotency_key: parsed.data.idempotency_key,

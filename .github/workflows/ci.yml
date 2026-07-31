@@ -52,7 +52,7 @@ jobs:
       - run: npx supabase db reset
       - run: npm run db:test
       - run: npx supabase gen types typescript --local --schema public > /tmp/database.ts
-      - run: node scripts/check-generated-types.mjs /tmp/database.ts
+      - run: npm run check:db-types
 
   mobile-e2e:
     runs-on: ubuntu-latest

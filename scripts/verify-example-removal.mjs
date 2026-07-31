@@ -47,6 +47,10 @@ try {
   // check:secrets is omitted: it enumerates files via `git ls-files` and the
   // temp copy has no .git; the copy is a subset of the workspace, whose own
   // check:secrets step already scans the identical files.
+  // db:types and check:db-types are omitted too: both need a live database. The
+  // copy's committed src/types/database.ts still declares the example table, which
+  // is a harmless superset for typecheck; regenerating it is the START_NEW_APP.md
+  // step (db:reset, db:test, db:types), not this script's job.
   for (const [command, args] of [
     ["npm", ["run", "format:check"]],
     ["npm", ["run", "typecheck"]],

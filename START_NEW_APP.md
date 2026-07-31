@@ -35,7 +35,7 @@ npm run db:test
 npm run db:types
 ```
 
-Commit the regenerated base and optional-feature database type files.
+Commit the regenerated `src/types/database.ts`.
 
 ## 14–17 minutes — configure auth
 
@@ -62,7 +62,7 @@ npm run db:types
 npm run verify:example-removal
 ```
 
-No analytics, E2E, database-test, or generated-type edits are required outside those two deleted paths.
+No analytics, E2E, database-test, or generated-type edits are required outside those two deleted paths. `db:types` regenerates clean foundation types from the reset database; commit the regenerated `src/types/database.ts` along with the deletions.
 
 ### Add `/` to the performance gate once `/` is a real page
 
