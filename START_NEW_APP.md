@@ -2,6 +2,8 @@
 
 The 30-minute timer assumes GitHub access, a working npm registry, Docker running, a Supabase account, and hosting access. Confirm these before starting; infrastructure download or account-approval time is outside the template gate.
 
+Every command below assumes Linux or WSL2 (Ubuntu) — the only supported development environment. On WSL2, keep the clone in the Linux filesystem rather than under `/mnt/c`, and run Node, npm, Docker, and Supabase inside WSL2.
+
 ## 0–3 minutes — create from the template
 
 1. In GitHub, open the template repository.

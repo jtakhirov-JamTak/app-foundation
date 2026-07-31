@@ -53,9 +53,7 @@ Report:
 - New branch name
 - Env files copied (list each)
 - Files NOT copied that the user may need (anything in `.gitignore` that wasn't on the carry list)
-- One-line instructions for the user: open a second editor / Claude session at the new path; merge back when done. PowerShell has no `&&` operator — chain with `;` + `if ($?)`:
-  - PowerShell: `git checkout <main>; if ($?) { git merge feature/<arg> }; if ($?) { git worktree remove ../<repo-name>-<arg> }`
-  - Bash: `git checkout <main> && git merge feature/<arg> && git worktree remove ../<repo-name>-<arg>`
+- One-line instructions for the user: open a second editor / Claude session at the new path; merge back when done with `git checkout <main> && git merge feature/<arg> && git worktree remove ../<repo-name>-<arg>`
 
 ## Notes
 

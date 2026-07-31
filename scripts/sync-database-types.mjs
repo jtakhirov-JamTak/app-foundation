@@ -84,15 +84,14 @@ function generatedText() {
   const inputPath = process.argv[2];
   if (inputPath && !inputPath.startsWith("--")) return readFile(inputPath, "utf8");
 
-  // spawnSync can't launch the CLI's .cmd shim on Windows without a shell; the
-  // command and args are fixed literals, so shell interpolation is not a risk.
+  // npx --no-install resolves node_modules/.bin/supabase even when this script is
+  // run directly as `node scripts/sync-database-types.mjs`, not only via `npm run`.
   const result = spawnSync(
     "npx",
     ["--no-install", "supabase", "gen", "types", "typescript", "--local", "--schema", "public"],
     {
       encoding: "utf8",
       stdio: ["ignore", "pipe", "inherit"],
-      shell: process.platform === "win32",
     },
   );
   if (result.error) {

@@ -53,13 +53,12 @@ try {
     console.log(`db:test: copied ${copied.length} generated test(s) into supabase/tests/.`);
   }
 
-  // spawnSync can't launch the CLI's .cmd shim on Windows without a shell; the
-  // command and args are fixed literals, so shell interpolation is not a risk.
+  // npx --no-install resolves node_modules/.bin/supabase even when this script is
+  // run directly as `node scripts/run-db-tests.mjs`, not only via `npm run`.
   const command = ["npx", "--no-install", "supabase", "test", "db"];
   console.log(`db:test: running \`${command.join(" ")}\``);
   const result = spawnSync(command[0], command.slice(1), {
     stdio: "inherit",
-    shell: process.platform === "win32",
   });
 
   if (result.error) {

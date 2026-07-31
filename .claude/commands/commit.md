@@ -56,15 +56,16 @@ Single-line subject:
 git commit -m "<subject>"
 ```
 
-Multi-line body: this machine's default shell is PowerShell, which has **no bash heredoc**. Pass a single-quoted here-string to `-m` (open `@'`, close `'@` at column 0), or use the Bash tool for a real heredoc:
+Multi-line body — use a quoted heredoc so nothing in the message is expanded:
 
 ```
-git commit -m @'
+git commit -m "$(cat <<'EOF'
 <subject>
 
 <body line 1>
 <body line 2>
-'@
+EOF
+)"
 ```
 
 Don't skip hooks (`--no-verify`). If a pre-commit hook fails, the commit didn't happen — fix the underlying issue and create a new commit. Never `--amend` on hook failure.

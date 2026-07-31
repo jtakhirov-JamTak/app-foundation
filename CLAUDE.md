@@ -20,8 +20,8 @@ Read `ARCHITECTURE.md` before changing auth, security, DB structure, analytics, 
 6. Every DB change is a committed migration. Never hand-edit generated types.
 7. Auth gates protected data and protected navigation — never the shell's first paint.
 8. Smallest change that solves the problem. New dependency = one line in ARCHITECTURE.md.
-9. Any script spawning a CLI must use `shell: process.platform === "win32"` and surface
-   `result.error` — silent exit is never acceptable in a gate. (Fix Log, 4 instances.)
+9. Any script spawning a CLI must surface `result.error` — silent exit is never
+   acceptable in a gate. (Fix Log, 4 instances.)
 
 ## Bugs
 

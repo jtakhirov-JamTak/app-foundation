@@ -17,15 +17,12 @@ const baseEnv = {
 };
 
 function build(version) {
-  // spawnSync can't launch npm's .cmd shim on Windows without a shell; the
-  // command and args are fixed literals, so shell interpolation is not a risk.
   const result = spawnSync("npm", ["run", "build"], {
     stdio: "inherit",
     // The restore build must match a plain `npm run build` exactly, so it
     // gets untouched process.env and Next resolves .env.local itself;
     // baseEnv's hermetic defaults would override .env.local values.
     env: version ? { ...baseEnv, NEXT_PUBLIC_APP_VERSION: version } : process.env,
-    shell: process.platform === "win32",
   });
   if (result.error) {
     console.error(result.error);

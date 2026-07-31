@@ -47,6 +47,7 @@ Next.js App Router, React, strict TypeScript, Tailwind CSS, Supabase Auth/Postgr
 
 ## Prerequisites
 
+- Supported development environment: Linux or WSL2 (Ubuntu). Native Windows is unsupported. Keep the repo in the WSL Linux filesystem, not a `/mnt/c` path. Run Node, npm, Docker, and Supabase inside WSL2.
 - Node.js 22+
 - npm
 - Docker running for local Supabase

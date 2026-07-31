@@ -8,8 +8,7 @@ const sourceRoot = process.cwd();
 const temp = await mkdtemp(join(tmpdir(), "application-example-removal-"));
 
 // Compare exact top-level names: a substring match like "/.git" also drops
-// .gitignore/.github from the copy (losing Prettier's ignore rules), and
-// "/"-separated patterns never match Windows paths.
+// .gitignore/.github from the copy (losing Prettier's ignore rules).
 const excludedRootEntries = new Set(["node_modules", ".next", ".git"]);
 
 try {
@@ -22,11 +21,7 @@ try {
   });
 
   if (existsSync(join(sourceRoot, "node_modules"))) {
-    await symlink(
-      join(sourceRoot, "node_modules"),
-      join(temp, "node_modules"),
-      process.platform === "win32" ? "junction" : "dir",
-    );
+    await symlink(join(sourceRoot, "node_modules"), join(temp, "node_modules"), "dir");
   }
   await rm(join(temp, "src/app/(app)/(example-feature)"), { recursive: true, force: true });
   await rm(join(temp, "supabase/migrations/202607210002_example_records.sql"), {
@@ -62,13 +57,10 @@ try {
     ["npm", ["run", "check:sw"]],
     ["npm", ["run", "check:analytics"]],
   ]) {
-    // spawnSync can't launch npm's .cmd shim on Windows without a shell; the
-    // command and args are fixed literals, so shell interpolation is not a risk.
     const result = spawnSync(command, args, {
       cwd: temp,
       env,
       stdio: "inherit",
-      shell: process.platform === "win32",
     });
     if (result.error) {
       console.error(result.error);

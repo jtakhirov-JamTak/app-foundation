@@ -31,17 +31,7 @@ Create the file with:
 
 ## Step 1 — Archive the current file
 
-Before any write, snapshot the existing file. This machine's default shell is PowerShell (no `mkdir -p`, no `cp`, no `$(date …)` substitution) — use the PowerShell form, or run the Bash form via the Bash tool:
-
-PowerShell:
-
-```
-New-Item -ItemType Directory -Force .archive | Out-Null
-$ts = (Get-Date).ToUniversalTime().ToString("yyyyMMddTHHmmssZ")
-Copy-Item session-context.md ".archive/session-context-$ts.md"
-```
-
-Bash:
+Before any write, snapshot the existing file:
 
 ```
 mkdir -p .archive && cp session-context.md ".archive/session-context-$(date -u +%Y%m%dT%H%M%SZ).md"
