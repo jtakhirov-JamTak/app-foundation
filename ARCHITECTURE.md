@@ -94,13 +94,15 @@ Serwist precaches the static shell routes, versioned build assets, manifest, and
 - 60 fps touch transition target.
 - Root shell JavaScript ≤ 178 KiB gzip (`nomodule` polyfills excluded; calibrated 2026-07-22, first real build + 10%).
 - No client chunk > 100 KiB gzip without documenting an exception.
-- Lab Lighthouse gate (`lighthouserc.cjs`, production build, mobile emulation): `/sign-in` only — LCP ≤ 2.5 s, CLS ≤ 0.1, TBT ≤ 200 ms. Lab TBT stands in for INP, which only exists as a field metric. `/` was dropped 2026-07-30: unauthenticated `/` client-redirects to `/sign-in`, so it measured the same page twice under a misleading name. `npm run check:lighthouse-url` runs after `lhci` in CI and fails if any collected URL redirected, so a budget can never silently describe a different page than the one it names.
+- Lab Lighthouse gate (`lighthouserc.cjs`, production build, mobile emulation): `/sign-in` only — LCP ≤ 2.5 s, CLS ≤ 0.1, TBT ≤ 200 ms. Lab TBT stands in for INP, which only exists as a field metric. `/` was dropped 2026-07-30: unauthenticated `/` client-redirects to `/sign-in`, so it measured the same page twice under a misleading name. `npm run perf:lab` runs `lhci` and then `npm run check:lighthouse-url`, which fails if any collected URL redirected, so a budget can never silently describe a different page than the one it names. The pair is release-only rather than per-PR — lab numbers are the least deterministic signal available on a shared runner — and runs inside `npm run release:verify`.
 - **Unauthenticated cold start (`/` → redirect → sign-in painted): LCP ≤ 2.5 s**, asserted in `e2e/performance.spec.ts`, Chromium only. lhci cannot cover this — it has no session and `/` redirects — so Playwright carries it, per [the 2026-07-29 fix-log entry](docs/FIX_LOG.md#2026-07-29--the-lighthouse-gate-never-measured-the-app-shell). One PerformanceObserver spans both URLs because `AuthBoundary` redirects with `router.replace()` (a soft navigation, so the document is never torn down and LCP never resets). Measured 268–408 ms locally across 19 runs, so ~6× headroom; the budget is the field number rather than a local calibration, which would flake on a shared runner. Re-adding `/` to `lighthouserc.cjs` once it is a real page (see `START_NEW_APP.md`) adds lab-profile coverage but is no longer the only way to measure this.
 - **Before trusting a local Lighthouse number, read the two 2026-07-29 decision-log entries:** [local TBT is not reliably measurable](docs/DECISIONS.md#2026-07-29--local-lighthouse-tbt-is-not-reliably-measurable) and [inlineCss measured and rejected](docs/DECISIONS.md#2026-07-29--experimentalinlinecss-measured-and-rejected). Short version: **lab TBT is noise on a loaded developer machine — LCP is not.** One 3-run batch spanned 95 / 395 / 421 ms of TBT on `/`, while `/sign-in` LCP held 2143–2198 ms across 5 runs. So a local LCP A/B is trustworthy and a local TBT A/B is not, at any run count worth waiting for; settle TBT on a quiet runner. Always compare arms back-to-back in one session (~130 ms of between-batch LCP drift was observed on builds differing only by a preconnect tag). Also note the `/` row measures a redirect, not the shell — see [the fix-log entry](docs/FIX_LOG.md#2026-07-29--the-lighthouse-gate-never-measured-the-app-shell).
 
 ## Tests and CI
 
-Unit tests cover schemas, privacy, origin checks, fetch error mapping, and service-worker matching. Database tests rebuild from zero and exercise cross-user isolation. Optional feature pgTAP and Playwright tests live inside their removable feature folder and are discovered by thin runner scripts. Playwright runs mobile Chromium and WebKit. Lighthouse uses the production build. Security checks include secret scanning, dependency audit, telemetry import restrictions, and generated-type drift.
+Unit tests cover schemas, privacy, origin checks, fetch error mapping, and service-worker matching. Database tests rebuild from zero and exercise cross-user isolation. Optional feature pgTAP and Playwright tests live inside their removable feature folder and are discovered by thin runner scripts. Playwright runs mobile Chromium and WebKit; per-PR CI runs mobile Chromium alone, and WebKit runs on the release path. Lighthouse uses the production build and is release-only. Security checks include secret scanning, dependency audit, telemetry import restrictions, and generated-type drift.
+
+Gates split by cost. Every per-PR check is cheap and deterministic. Everything expensive or noisy — the second browser engine, the lab Lighthouse pass, a full database rebuild — runs through `npm run release:verify` (`scripts/release-verify.mjs`), which executes them in one fail-fast sequence and prints a pass/fail/skipped table. It must be green before any tag.
 
 ## Library justifications
 
@@ -153,7 +155,7 @@ Unit tests cover schemas, privacy, origin checks, fetch error mapping, and servi
 - Protected SWR cache is memory-only, so offline restarts show no user data.
 - API routes add one boundary but centralize validation, rate limits, errors, and output schemas.
 - SQL functions improve atomicity but require migration tests.
-- Two mobile browser engines increase CI duration.
+- Per-PR e2e runs one browser engine, so a Safari-specific regression can sit on `main` between releases; both engines run before any tag.
 - Serwist currently requires Webpack in this template; Next.js development and builds use `--webpack`.
 
 ## Rejected approaches
@@ -175,7 +177,6 @@ Known gaps, recorded as decisions rather than oversights (playbook §8). Each is
 - **`events` table retention policy.** The table is insert-only and grows without bound. No pruning, partitioning, or archival is defined.
 - **Production observability.** No health endpoint, uptime monitoring, or error alerting. Errors are recorded as typed analytics events only; nothing pages anyone.
 - **Serwist/webpack trigger.** The template builds with `--webpack` because Serwist requires it. If Next.js deprecates `--webpack`, revisit Serwist against a minimal hand-rolled service worker.
-- **`verify:sw-version-bust` simplification (P1).** The current script builds three times to prove cache names track `NEXT_PUBLIC_APP_VERSION`. Replace it only when the invariant is provable by a cheap deterministic test, by coverage in the service-worker e2e upgrade path, or by a release-only check — not by deleting the guarantee.
 
 ## History
 

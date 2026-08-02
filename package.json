@@ -38,9 +38,10 @@
     "check:secrets": "node scripts/scan-secrets.mjs",
     "check:analytics": "node scripts/check-analytics-contract.mjs",
     "check:lighthouse-url": "node scripts/check-lighthouse-url.mjs",
-    "verify:sw-version-bust": "node scripts/verify-sw-version-bust.mjs",
+    "perf:lab": "lhci autorun && node scripts/check-lighthouse-url.mjs",
     "verify:example-removal": "node scripts/verify-example-removal.mjs",
     "verify": "npm run format:check && npm run typecheck && npm run lint && npm run test && npm run build && npm run check:bundle && npm run check:sw && npm run check:secrets && npm run check:analytics",
+    "release:verify": "node scripts/release-verify.mjs",
     "check:db-types": "node scripts/check-generated-types.mjs /tmp/database.ts"
   },
   "dependencies": {

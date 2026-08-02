@@ -63,7 +63,10 @@ jobs:
         with:
           node-version: 22
       - run: npm ci --no-audit --no-fund
-      - run: npx playwright install --with-deps chromium webkit
+      # mobile-webkit is deliberately absent: per-PR e2e runs one engine to keep
+      # this path cheap. Both engines run on the release path (`npm run
+      # release:verify`), which must be green before any tag.
+      - run: npx playwright install --with-deps chromium
       - run: npx supabase start
       - run: npx supabase db reset
       # The workflow-level placeholder keys are rejected by the real local
@@ -75,25 +78,7 @@ jobs:
           export NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY="$(echo "$STATUS" | jq -r .PUBLISHABLE_KEY)"
           export SUPABASE_SECRET_KEY="$(echo "$STATUS" | jq -r .SECRET_KEY)"
           npm run build
-          npm run test:e2e
-
-  performance-pwa:
-    runs-on: ubuntu-latest
-    needs: quality
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 22
-      - run: npm ci --no-audit --no-fund
-      - run: npm run verify:sw-version-bust
-      - run: npm run check:sw
-      - run: npx playwright install --with-deps chromium
-      - run: npm run test:e2e:chromium -- e2e/service-worker.spec.ts
-      - run: npx lhci autorun
-      # lhci cannot assert which page it actually landed on; this fails if a
-      # collected URL redirected, so budgets can never describe a different page.
-      - run: npm run check:lighthouse-url
+          npm run test:e2e:chromium
 
   security:
     runs-on: ubuntu-latest

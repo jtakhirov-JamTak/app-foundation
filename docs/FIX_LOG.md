@@ -6,6 +6,18 @@ date/version · problem · generic fix · regression test · which app found it.
 Newest first. Current-state architecture lives in [`ARCHITECTURE.md`](../ARCHITECTURE.md);
 design decisions live in [`DECISIONS.md`](DECISIONS.md).
 
+### 2026-08-02 — The Lighthouse gate could not run on the only supported development environment
+
+**Version:** 1.0.0
+
+**Problem:** **`lhci autorun` had never been run on WSL2, and it does not work there.** It only ever ran on an ubuntu CI runner, so nothing exercised it on the one environment the template supports ([DECISIONS.md, 2026-07-30](DECISIONS.md#2026-07-30--wsl2linux-is-the-only-supported-development-environment)). Moving the lab pass to a release-only path made it local, and it failed immediately: `chrome-launcher` branches on `is-wsl` and launches the **Windows** Chrome reachable over `/mnt/c`, whose DevTools port opens on the Windows host's loopback — unreachable from WSL2, so the launcher spun for 20 s and died with `ECONNREFUSED 127.0.0.1:40873`. Pointing `chromePath` at a Linux Chromium then exposed the second half: `chrome-launcher` still takes the WSL branch, so it Windows-formats the profile path it passes as `--user-data-dir` (`C:\Users\...`), and a Linux Chromium reads that as a **relative** path and creates a directory literally named `C:\Users\jtakh\AppData\Local\lighthouse.<n>` in the repository root. Three of them, one per Lighthouse run. `prettier --check .` then fails on the `Default/README` Chrome writes inside — so a **green** `perf:lab` poisoned the `verify` step of the next release run, 4 s in. Same class as the gitignored `<host>_<date>.report.html` artifacts (2026-07-28): untracked local state at the repo root breaks `format:check`
+
+**Generic fix:** `lighthouserc.cjs` pins both. `chromePath` resolves `process.env.CHROME_PATH || require("@playwright/test").chromium.executablePath()` — the Linux Chromium Playwright already installs for `npm run test:e2e`, so the release path needs no second browser and no per-machine `CHROME_PATH`. `settings.chromeFlags` pins `--user-data-dir` to an absolute path under `os.tmpdir()`; `chrome-launcher` appends caller flags **after** its own and Chromium takes the last occurrence of a switch, so ours wins. Both live in the config rather than in the `perf:lab` script deliberately: `ARCHITECTURE.md` and this log both tell you to run `npx lhci autorun` directly for A/B measurements, and a fix that only worked through `npm run perf:lab` would leave that documented command broken. ESLint's `no-require-imports` is scoped off for `**/*.cjs` only — a `.cjs` file is CommonJS by definition, so `require()` there is its correct module syntax, and every `.mjs`/`.ts`/`.tsx` file still cannot use it
+
+**Regression test:** Two tests in `scripts/lighthouse-config.test.mjs`, asserting the config rather than the machine so they hold on a runner that has never installed a browser. Verified by planting each failure separately, not by reading the code: repointing `chromePath` at `/mnt/c/.../chrome.exe` fails "pins a Linux Chrome rather than one mounted from the Windows host"; deleting the `chromeFlags` line fails "pins an absolute Chrome profile directory outside the repository"; restoring each returns 2 passed. End to end, `npm run release:verify` is green 7 of 7 with the repository root clean afterwards
+
+**Found in:** app-foundation itself
+
 ### 2026-08-01 — The E2E suite never exercised a real API route
 
 **Version:** 1.0.0

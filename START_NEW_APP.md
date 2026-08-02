@@ -74,6 +74,8 @@ npm run verify:example-removal
 
 No other analytics, E2E, database-test, or generated-type edits are required. `verify:example-removal` performs exactly these deletions on a throwaway copy and fails if an `EXAMPLE-ONLY` marker survives anywhere under `src/`, `supabase/`, or `e2e/`, so a marker this list forgets is caught rather than shipped. `db:types` regenerates clean foundation types from the reset database; commit the regenerated `src/types/database.ts` along with the deletions.
 
+This is the last time you run `verify:example-removal`: once the example feature is gone it has nothing to delete. Nothing to un-wire — `npm run release:verify` detects the missing `src/app/(app)/(example-feature)` folder and reports the step as skipped.
+
 ### Add `/` to the performance gate once `/` is a real page
 
 The template ships `lighthouserc.cjs` measuring `/sign-in` only. In the template, unauthenticated `/` client-redirects to `/sign-in`, so collecting it measured the same page twice and any budget set on it would be invalidated by this scaffold step. As soon as `/` renders something of its own, add it back:

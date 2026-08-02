@@ -23,6 +23,8 @@ Pre-deploy or pre-launch audit. Argument-driven scope:
 
 Run the `npm run verify` agent (type check → lint → unit tests → production build, stop-on-first-failure, max 2 fix attempts per step, explicit ran-vs-skipped report). For a final pre-deploy pass, tell it to build from a clean state — clear `.next`/`dist`/`.turbo` first. If it returns FAIL, **stop and do not deploy.** Don't re-implement the sequence here; the agent owns it.
 
+Before any tag, `npm run release:verify` must be green — it carries the checks deliberately absent from per-PR CI (both browser engines, lab Lighthouse, full database rebuild) and prints a pass/fail/skipped table. If any step is FAIL or was never reached, **stop and do not tag.**
+
 ---
 
 # `scope=delta` — since-last-deploy risk review
