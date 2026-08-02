@@ -1,6 +1,6 @@
 // The hermetic-test Supabase host. Builds that use it (Playwright's webServer
-// fallback, `verify-sw-version-bust`, `verify-example-removal`) never talk to a
-// real Supabase, so the host does not resolve.
+// fallback, `verify-example-removal`) never talk to a real Supabase, so the host
+// does not resolve.
 export const PLACEHOLDER_SUPABASE_HOST = "example.supabase.co";
 
 // Returns the origin worth preconnecting to, or null when warming it would be
