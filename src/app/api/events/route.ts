@@ -1,13 +1,13 @@
 import { NextResponse } from "next/server";
 
+import { eventRequestSchema } from "@/lib/analytics/catalog";
 import { assertSafeEventProperties } from "@/lib/analytics/privacy";
-import { eventRequestSchema } from "@/lib/analytics/schemas";
 import { checkOrigin } from "@/lib/security/check-origin";
 import { InvalidJsonBody, readJsonBody } from "@/lib/security/read-json";
 import { apiError, apiErrorFromUnknown, requestId } from "@/lib/errors/http";
 import { limitUser } from "@/lib/rate-limit";
 import { requireUser } from "@/lib/auth/require-user";
-import { createServerSupabaseClient } from "@/lib/supabase/server";
+import { createServiceSupabaseClient } from "@/lib/supabase/service";
 
 export const dynamic = "force-dynamic";
 
@@ -51,7 +51,9 @@ export async function POST(request: Request) {
       : apiError("RATE_LIMITED", 429, true, id);
   }
 
-  const supabase = await createServerSupabaseClient();
+  // Service role: `events` is not client-writable, so this route is the only
+  // write path. `user_id` comes from the verified session, never from the body.
+  const supabase = createServiceSupabaseClient();
   const { error } = await supabase.from("events").insert({
     user_id: user.id,
     event_name: parsed.data.event_name,

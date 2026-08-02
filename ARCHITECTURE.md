@@ -38,7 +38,7 @@ Reads use typed same-origin API routes and SWR. Writes repeat validation on the 
 
 - RLS is enabled in table-creation migrations.
 - Client-reachable inserts use `WITH CHECK (auth.uid() = user_id)`.
-- Events are insert-only for authenticated clients.
+- Client roles cannot write `events` at all; `/api/events` writes with the service role after verifying the session.
 - Secrets are parsed in server-only modules.
 - Production refuses to start without distributed rate-limit credentials.
 - Cookie-authenticated mutations use the fail-closed origin guard copied as-is from the audited `pure-eq` pattern.
@@ -64,7 +64,11 @@ User-owned domain tables use UUID `id` and UUID `user_id`. UTC is canonical. Cal
 
 ## Analytics and privacy
 
-`events` is thin, additive, and never replaces domain tables. Event names and property shapes are compile-time allowlisted and database-allowlisted. The database validates each event’s exact keys, scalar types, and catalog values, so bypassing TypeScript cannot turn an allowed field into free text. The client wrapper is the only application telemetry interface. Event properties are capped at 4 KiB and reject sensitive key names. Web Vitals are recorded only after authenticated identity is verified.
+`events` is thin, additive, and never replaces domain tables. `src/lib/analytics/catalog.ts` is the single source of event semantics: zod schemas define the enums and each event's exact properties, and every exported type — including the request schema `/api/events` parses — is derived from them. Extend the catalog by editing that file; declaration merging cannot reach zod-derived types, so there is no module-augmentation hook.
+
+The database knows nothing about individual events. It enforces only invariants that survive any catalog: name format, object-typed properties, scalar values, a 4 KiB cap, and `public.analytics_properties_safe()` rejecting sensitive key names on word boundaries. `assertSafeEventProperties` mirrors that function, and the same accept/reject vectors are asserted in `privacy.test.ts` and in pgTAP, so the two languages cannot drift apart silently.
+
+Because semantics are no longer checked in SQL, the write path is closed instead: `events` has no RLS policy and no client insert grant, and `/api/events` — origin, schema, privacy, session, rate limit — is the only writer, using the service role with a `user_id` taken from the verified session. The client wrapper is the only application telemetry interface, and client modules import the catalog with `import type` only so zod stays out of the browser bundle. Web Vitals are recorded only after authenticated identity is verified.
 
 ## Error and state conventions
 

@@ -5,13 +5,13 @@ import { AppError } from "@/lib/errors/app-error";
 const mocks = vi.hoisted(() => ({
   requireUser: vi.fn(),
   limitUser: vi.fn(),
-  createServerSupabaseClient: vi.fn(),
+  createServiceSupabaseClient: vi.fn(),
 }));
 
 vi.mock("@/lib/auth/require-user", () => ({ requireUser: mocks.requireUser }));
 vi.mock("@/lib/rate-limit", () => ({ limitUser: mocks.limitUser }));
-vi.mock("@/lib/supabase/server", () => ({
-  createServerSupabaseClient: mocks.createServerSupabaseClient,
+vi.mock("@/lib/supabase/service", () => ({
+  createServiceSupabaseClient: mocks.createServiceSupabaseClient,
 }));
 
 import { POST } from "./route";
@@ -40,7 +40,7 @@ describe("events API boundary", () => {
   beforeEach(() => {
     mocks.requireUser.mockReset();
     mocks.limitUser.mockReset();
-    mocks.createServerSupabaseClient.mockReset();
+    mocks.createServiceSupabaseClient.mockReset();
     mocks.requireUser.mockResolvedValue({ id: "11111111-1111-4111-8111-111111111111" });
     mocks.limitUser.mockResolvedValue({ success: true });
   });
@@ -56,7 +56,23 @@ describe("events API boundary", () => {
       request({ ...validEvent, properties: { email: "private@example.invalid" } }),
     );
     expect(response.status).toBe(422);
-    expect(mocks.createServerSupabaseClient).not.toHaveBeenCalled();
+    expect(mocks.createServiceSupabaseClient).not.toHaveBeenCalled();
+  });
+
+  // The catalog's discriminated union is what rejects these now; the database no
+  // longer knows one event from another.
+  it("rejects an event name that is not in the catalog", async () => {
+    const response = await POST(request({ ...validEvent, event_name: "not_in_the_catalog" }));
+    expect(response.status).toBe(422);
+    expect(mocks.createServiceSupabaseClient).not.toHaveBeenCalled();
+  });
+
+  it("rejects properties belonging to a different event", async () => {
+    const response = await POST(
+      request({ ...validEvent, properties: { area: "global", code: "X", recoverable: true } }),
+    );
+    expect(response.status).toBe(422);
+    expect(mocks.createServiceSupabaseClient).not.toHaveBeenCalled();
   });
 
   it("requires an authenticated user", async () => {
@@ -68,9 +84,11 @@ describe("events API boundary", () => {
   it("derives event ownership from the verified session", async () => {
     const insert = vi.fn().mockResolvedValue({ error: null });
     const from = vi.fn().mockReturnValue({ insert });
-    mocks.createServerSupabaseClient.mockResolvedValue({ from });
+    mocks.createServiceSupabaseClient.mockReturnValue({ from });
 
-    const response = await POST(request(validEvent));
+    const response = await POST(
+      request({ ...validEvent, user_id: "22222222-2222-4222-8222-222222222222" }),
+    );
 
     expect(response.status).toBe(204);
     expect(from).toHaveBeenCalledWith("events");
@@ -82,11 +100,23 @@ describe("events API boundary", () => {
     );
   });
 
+  // The service role bypasses RLS, so a generic CHECK is the only rejection the
+  // database can still raise. It has to stay a 422, not a 503.
+  it("maps a check-constraint violation to an invalid event", async () => {
+    const insert = vi.fn().mockResolvedValue({ error: { code: "23514", message: "check" } });
+    mocks.createServiceSupabaseClient.mockReturnValue({
+      from: vi.fn().mockReturnValue({ insert }),
+    });
+
+    const response = await POST(request(validEvent));
+    expect(response.status).toBe(422);
+  });
+
   it("sanitizes database failures", async () => {
     const insert = vi.fn().mockResolvedValue({
       error: { code: "XX000", message: "private database detail" },
     });
-    mocks.createServerSupabaseClient.mockResolvedValue({
+    mocks.createServiceSupabaseClient.mockReturnValue({
       from: vi.fn().mockReturnValue({ insert }),
     });
 

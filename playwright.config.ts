@@ -1,5 +1,14 @@
 import { defineConfig, devices } from "@playwright/test";
 
+import { loadEnvLocal } from "./scripts/load-env-local.mjs";
+
+// e2e/global-setup.ts already reads .env.local to decide where to seed the
+// fixture user, but webServer.env is built here — so without this the app under
+// test ran against the placeholder stack while the setup and the specs believed
+// a local one. Reading it here makes all four processes agree, the way CI does
+// by exporting the stack's credentials.
+loadEnvLocal();
+
 const port = Number(process.env.PORT ?? 3100);
 const baseURL = `http://127.0.0.1:${port}`;
 
@@ -48,9 +57,14 @@ export default defineConfig({
       APP_ENV: "test",
       SUPABASE_SECRET_KEY:
         process.env.SUPABASE_SECRET_KEY ?? "sb_secret_test_000000000000000000000000000000",
-      UPSTASH_REDIS_REST_URL: process.env.UPSTASH_REDIS_REST_URL ?? "https://example.upstash.io",
-      UPSTASH_REDIS_REST_TOKEN:
-        process.env.UPSTASH_REDIS_REST_TOKEN ?? "test-token-000000000000000000000000",
+      // Deliberately empty, overriding whatever the environment supplies: a
+      // limiter built from an unreachable placeholder host throws on every
+      // call, which the route correctly reports as 503 RATE_LIMIT_UNAVAILABLE.
+      // That made any spec hitting a real route impossible. Empty selects the
+      // in-memory limiter (APP_ENV=test), so routes can be exercised end to
+      // end; distributed rate limiting is not what the browser suite tests.
+      UPSTASH_REDIS_REST_URL: "",
+      UPSTASH_REDIS_REST_TOKEN: "",
     },
   },
 });

@@ -1,11 +1,72 @@
 import { existsSync } from "node:fs";
-import { cp, mkdtemp, rm, symlink } from "node:fs/promises";
+import { cp, mkdtemp, readdir, readFile, rm, symlink, writeFile } from "node:fs/promises";
 import { spawnSync } from "node:child_process";
 import { tmpdir } from "node:os";
 import { join, relative, sep } from "node:path";
 
 const sourceRoot = process.cwd();
 const temp = await mkdtemp(join(tmpdir(), "application-example-removal-"));
+
+// Scaffold deletion is no longer just two paths. Zod-derived catalog types
+// cannot be extended by declaration merging, so the example's screen, error
+// area, error codes and event live in the foundation catalog inside EXAMPLE-ONLY
+// markers. START_NEW_APP.md tells a human to strip them; this does the same in
+// the copy and then fails on any marker that survives, so a marker added to a
+// file nobody listed here is caught here instead of shipping into a new app.
+const MARKED_FILES = ["src/lib/analytics/catalog.ts", "src/lib/analytics/screen-registry.ts"];
+const MARKER_SCAN_ROOTS = ["src", "supabase", "e2e"];
+
+// Maintained together with MARKED_FILES: every quoted literal a marked block
+// introduces belongs here, and adding a marked block means adding its literals.
+//
+// The marker scan below only catches a marker in a file nobody listed. It cannot
+// catch the opposite mistake — a listed file whose block loses its markers —
+// unless the leftover breaks something. A dangling reference does break (an
+// orphaned schema entry, a path tuple the enum no longer admits, both caught by
+// typecheck), but a self-contained value does not: `"example"` left in an enum
+// compiles, tests, and ships. Checking the literals closes that.
+//
+// Token-specific rather than a repo-wide /example/i scan, which would reject the
+// @example.invalid addresses the pgTAP fixtures and e2e specs legitimately use.
+const FORBIDDEN_LITERALS_AFTER_STRIP = [
+  '"example"',
+  '"/example"',
+  '"example_form"',
+  '"example_record_created"',
+  '"EXAMPLE_LOAD_FAILED"',
+  '"EXAMPLE_SAVE_FAILED"',
+];
+
+function stripMarkedBlocks(text, path) {
+  const kept = [];
+  let depth = 0;
+  for (const line of text.split("\n")) {
+    if (line.includes("END EXAMPLE-ONLY")) {
+      depth -= 1;
+      if (depth < 0) throw new Error(`Unopened END EXAMPLE-ONLY marker in ${path}`);
+      continue;
+    }
+    if (line.includes("EXAMPLE-ONLY")) {
+      depth += 1;
+      continue;
+    }
+    if (depth === 0) kept.push(line);
+  }
+  if (depth !== 0) throw new Error(`Unclosed EXAMPLE-ONLY marker in ${path}`);
+  // Stripping a block leaves the blank lines that surrounded it back to back,
+  // which Prettier would then reject in the copy.
+  return kept.join("\n").replace(/\n{3,}/g, "\n\n");
+}
+
+async function filesUnder(directory) {
+  const found = [];
+  for (const entry of await readdir(directory, { withFileTypes: true })) {
+    const path = join(directory, entry.name);
+    if (entry.isDirectory()) found.push(...(await filesUnder(path)));
+    else if (entry.isFile()) found.push(path);
+  }
+  return found;
+}
 
 // Compare exact top-level names: a substring match like "/.git" also drops
 // .gitignore/.github from the copy (losing Prettier's ignore rules).
@@ -27,6 +88,57 @@ try {
   await rm(join(temp, "supabase/migrations/202607210002_example_records.sql"), {
     force: true,
   });
+
+  for (const file of MARKED_FILES) {
+    const path = join(temp, file);
+    await writeFile(path, stripMarkedBlocks(await readFile(path, "utf8"), file));
+  }
+
+  const survivors = [];
+  for (const root of MARKER_SCAN_ROOTS) {
+    for (const path of await filesUnder(join(temp, root))) {
+      if ((await readFile(path, "utf8")).includes("EXAMPLE-ONLY")) {
+        survivors.push(relative(temp, path));
+      }
+    }
+  }
+  if (survivors.length > 0) {
+    console.error(
+      `EXAMPLE-ONLY markers survive deletion in:\n  ${survivors.join("\n  ")}\n` +
+        `Add each file to MARKED_FILES in scripts/verify-example-removal.mjs and to the ` +
+        `deletion step in START_NEW_APP.md.`,
+    );
+    process.exit(1);
+  }
+
+  const leftovers = [];
+  for (const file of MARKED_FILES) {
+    const text = await readFile(join(temp, file), "utf8");
+    for (const literal of FORBIDDEN_LITERALS_AFTER_STRIP) {
+      if (text.includes(literal)) leftovers.push(`${file}: ${literal}`);
+    }
+  }
+  if (leftovers.length > 0) {
+    console.error(
+      `Example values survive the strip:\n  ${leftovers.join("\n  ")}\n` +
+        `A block lost its EXAMPLE-ONLY markers, or a new one was never given any.`,
+    );
+    process.exit(1);
+  }
+
+  // Removing lines can leave a construct that Prettier now wants on one line,
+  // so reformat exactly as START_NEW_APP.md tells a human to. Anything else the
+  // deletion disturbs still has to survive the format:check below.
+  const formatted = spawnSync("npx", ["--no-install", "prettier", "--write", ...MARKED_FILES], {
+    cwd: temp,
+    env: process.env,
+    stdio: "inherit",
+  });
+  if (formatted.error) {
+    console.error(formatted.error);
+    process.exit(1);
+  }
+  if (formatted.status !== 0) process.exit(formatted.status ?? 1);
 
   const env = {
     ...process.env,

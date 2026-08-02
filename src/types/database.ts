@@ -68,10 +68,7 @@ export type Database = {
       [_ in never]: never;
     };
     Functions: {
-      analytics_event_valid: {
-        Args: { p_event_name: string; p_properties: Json };
-        Returns: boolean;
-      };
+      analytics_properties_safe: { Args: { p: Json }; Returns: boolean };
       create_example_record: {
         Args: { p_idempotency_key: string; p_title: string };
         Returns: {

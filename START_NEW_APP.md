@@ -53,16 +53,26 @@ src/app/(app)/(example-feature)
 supabase/migrations/202607210002_example_records.sql
 ```
 
+Then delete every line between an `EXAMPLE-ONLY` marker and its `END EXAMPLE-ONLY` in:
+
+```text
+src/lib/analytics/catalog.ts
+src/lib/analytics/screen-registry.ts
+```
+
+Those two carry the example's screen, error area, error codes and event because catalog types are derived from zod schemas, which declaration merging cannot extend — the catalog is edited directly instead. Removing lines can leave a construct Prettier wants formatted differently, so run `npm run format` afterwards. Nothing else needs editing: the example's database test lives in `src/app/(app)/(example-feature)/_tests/`, which the folder deletion already takes.
+
 Then rebuild the database and verify the codebase:
 
 ```bash
+npm run format
 npm run db:reset
 npm run db:test
 npm run db:types
 npm run verify:example-removal
 ```
 
-No analytics, E2E, database-test, or generated-type edits are required outside those two deleted paths. `db:types` regenerates clean foundation types from the reset database; commit the regenerated `src/types/database.ts` along with the deletions.
+No other analytics, E2E, database-test, or generated-type edits are required. `verify:example-removal` performs exactly these deletions on a throwaway copy and fails if an `EXAMPLE-ONLY` marker survives anywhere under `src/`, `supabase/`, or `e2e/`, so a marker this list forgets is caught rather than shipped. `db:types` regenerates clean foundation types from the reset database; commit the regenerated `src/types/database.ts` along with the deletions.
 
 ### Add `/` to the performance gate once `/` is a real page
 

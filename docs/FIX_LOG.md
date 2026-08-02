@@ -6,6 +6,30 @@ date/version · problem · generic fix · regression test · which app found it.
 Newest first. Current-state architecture lives in [`ARCHITECTURE.md`](../ARCHITECTURE.md);
 design decisions live in [`DECISIONS.md`](DECISIONS.md).
 
+### 2026-08-01 — The E2E suite never exercised a real API route
+
+**Version:** 1.0.0
+
+**Problem:** **No browser test had ever reached a real API route, and the suite could not tell you that.** `playwright.config.ts` handed the app server `UPSTASH_REDIS_REST_URL: "https://example.upstash.io"` — a host that does not resolve — so `distributedLimiter()` saw both credentials present, built a real `Ratelimit`, and `limiter.limit()` threw on every call. `limitUser` maps that to `reason: "unavailable"`, which the route correctly reports as **503 `RATE_LIMIT_UNAVAILABLE`** before ever touching its own logic. Every existing spec mocked `**/api/events` (and the example feature mocked its own routes), so nothing ever observed it: the failure mode was reachable only by the first test that tried to POST for real. A suite that mocks every route it owns passes vacuously — it proves the client's request shape and nothing about the server. Found while adding the events-route spec for the analytics change, whose first unmocked POST returned 503 with the whole stack healthy
+
+**Generic fix:** `webServer.env` sets `UPSTASH_REDIS_REST_URL` and `UPSTASH_REDIS_REST_TOKEN` to `""` explicitly, overriding whatever the environment supplies rather than defaulting with `??`. Empty (not absent) is deliberate — `??` does not substitute for an empty string, and CI's workflow-level `env:` block sets both, so a `??` default would be ignored exactly where it matters. `serverEnv` coerces empty to `undefined`, `distributedLimiter()` returns null, and `APP_ENV=test` selects the in-memory `localLimit`. Distributed rate limiting is not what a browser suite tests; an unreachable placeholder that guarantees 503 is worse than no limiter, because it silently forecloses testing every route behind it
+
+**Regression test:** `events are written only through the API route` in `e2e/auth-shell.spec.ts` — signs in for real, POSTs a `screen_viewed` event with a same-origin `fetch` from the page (real cookie session, real `Origin` header), asserts **204**, reads the row back with a service-role client, then proves a signed-in supabase-js client's direct insert is rejected. It is unmocked end to end, so it fails on any regression that makes a real request unreachable — including this one, which is how it was found. Verified against the defect: with the placeholder Upstash host restored the spec fails on `expect(status).toBe(204)` receiving 503
+
+**Found in:** app-foundation itself
+
+### 2026-08-01 — Playwright config and global setup read different environments
+
+**Version:** 1.0.0
+
+**Problem:** **The app under test could run against a different Supabase stack than the harness believed.** `e2e/global-setup.ts` calls `loadEnvLocal()` and uses the result to decide whether to seed the fixture user; `playwright.config.ts` never did, and `webServer.env` — the env the Next server actually boots with — is built there from `process.env` alone. For anyone whose stack lives only in `.env.local` (the documented local setup), global setup therefore seeded `a@example.invalid` at `127.0.0.1:54321` while the server under test was started against the `https://example.supabase.co` placeholder. The existing specs survived by accident: they mock `https://example.supabase.co/auth/v1/token**`, so the mismatch reads as the hermetic path working. Playwright's global setup runs in its own process, so its `loadEnvLocal()` never reached the workers either — three processes, two different answers to "which stack is this"
+
+**Generic fix:** `playwright.config.ts` calls `loadEnvLocal()` before building `webServer.env`, so config, global setup, workers, and the server resolve one environment — the same shape CI already gets by exporting the started stack's credentials. `loadEnvLocal` only fills variables that are `undefined`, so an explicit export still wins and CI is unaffected. `e2e/auth-shell.spec.ts` calls it too, because worker processes do not inherit global setup's mutations
+
+**Regression test:** the same `events are written only through the API route` spec, which is the first test whose correctness depends on the server and the test process agreeing about the stack. Verified in both directions: with `.env.local` present and the stack up it runs and passes against the real database in both browser projects; with `.env.local` moved aside and no exports, Playwright reports **1 skipped** (`requires a local Supabase stack — run "npm run db:start"`) rather than passing vacuously — the skip is surfaced, per non-negotiable #4
+
+**Found in:** app-foundation itself
+
 ### 2026-07-30 — The perf gate could assert on a non-measurement
 
 **Version:** 1.0.0

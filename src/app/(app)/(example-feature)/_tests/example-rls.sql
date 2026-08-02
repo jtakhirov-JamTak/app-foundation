@@ -2,7 +2,7 @@ begin;
 
 create extension if not exists pgtap with schema extensions;
 
-select plan(10);
+select plan(11);
 
 insert into auth.users (id, email)
 values
@@ -97,6 +97,27 @@ select throws_ok(
   '42501',
   null,
   'Anonymous users cannot execute the example create function'
+);
+
+reset role;
+
+-- The example's half of the all-valid-events fixture. The foundation suite
+-- covers foundation events; this covers the one the example adds, and is deleted
+-- with the folder, so a scaffolded app can never inherit a fixture row for an
+-- event its catalog no longer declares. Keep this in step with
+-- example_record_created in src/lib/analytics/catalog.ts.
+set local role service_role;
+
+select lives_ok(
+  $$insert into public.events (user_id, event_name, properties, platform, app_version)
+    values (
+      '11111111-1111-4111-8111-111111111111',
+      'example_record_created',
+      '{"source":"example_form"}',
+      'web',
+      'test'
+    )$$,
+  'The example event is accepted by the generic analytics constraints'
 );
 
 reset role;

@@ -1,7 +1,5 @@
 "use client";
 
-import "./analytics-extension";
-
 import type { FormEvent } from "react";
 import { useRef, useState } from "react";
 import useSWR from "swr";

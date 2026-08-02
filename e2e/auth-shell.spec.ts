@@ -1,4 +1,18 @@
+import { createClient } from "@supabase/supabase-js";
 import { expect, test, type Page } from "@playwright/test";
+
+import { loadEnvLocal } from "../scripts/load-env-local.mjs";
+import type { Database } from "@/types/database";
+
+// Playwright runs globalSetup in its own process, so its loadEnvLocal() call
+// does not reach the workers. CI exports the stack credentials directly; a local
+// run needs .env.local read here too, or the events spec below would skip even
+// with a stack running.
+loadEnvLocal();
+
+// Mirrors e2e/global-setup.ts: this URL means a hermetic run with every Supabase
+// request intercepted in-page, so there is no stack to talk to.
+const PLACEHOLDER_SUPABASE_URL = "https://example.supabase.co";
 
 const userId = "11111111-1111-4111-8111-111111111111";
 
@@ -194,4 +208,82 @@ test("password login reaches the protected shell", async ({ page }) => {
   await page.getByRole("button", { name: "Sign in" }).click();
   await expect(page).toHaveURL("/");
   await expect(page.getByText("The protected shell is ready")).toBeVisible();
+});
+
+// Unmocked end to end, so it needs a real stack: the route writes with the
+// service role and the assertions read the row back. CI's mobile-e2e job runs
+// against a started local stack, which is where this is enforced; a hermetic
+// local run has no auth server or database and reports SKIPPED, never a pass.
+test("events are written only through the API route", async ({ page }) => {
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL ?? "";
+  const secretKey = process.env.SUPABASE_SECRET_KEY ?? "";
+  const publishableKey = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY ?? "";
+
+  test.skip(
+    !supabaseUrl || supabaseUrl.startsWith(PLACEHOLDER_SUPABASE_URL) || !secretKey,
+    'requires a local Supabase stack — run "npm run db:start"',
+  );
+
+  await page.goto("/sign-in");
+  await page.getByLabel("Email").fill("a@example.invalid");
+  await page.getByLabel("Password").fill("password123");
+  await page.getByRole("button", { name: "Sign in" }).click();
+  await expect(page).toHaveURL("/");
+
+  // Same-origin fetch from the page, so the cookie session and the Origin header
+  // the route's guard requires are both real.
+  const occurredAt = new Date().toISOString();
+  const status = await page.evaluate(async (occurred_at) => {
+    const response = await fetch("/api/events", {
+      method: "POST",
+      credentials: "same-origin",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        event_name: "screen_viewed",
+        properties: { screen: "settings", referrer_screen: "home" },
+        occurred_at,
+        platform: "web",
+        app_version: "e2e",
+      }),
+    });
+    return response.status;
+  }, occurredAt);
+  expect(status).toBe(204);
+
+  // Service-role read-back stays in the test process; it is never imported into
+  // application client code.
+  const admin = createClient<Database>(supabaseUrl, secretKey, {
+    auth: { autoRefreshToken: false, persistSession: false },
+  });
+  const written = await admin
+    .from("events")
+    .select("user_id, event_name, properties")
+    .eq("occurred_at", occurredAt);
+
+  expect(written.error).toBeNull();
+  expect(written.data).toHaveLength(1);
+  expect(written.data?.[0]).toMatchObject({
+    event_name: "screen_viewed",
+    properties: { screen: "settings", referrer_screen: "home" },
+  });
+
+  // The same signed-in user, talking to PostgREST directly, has no write path:
+  // the insert grant is revoked and RLS carries no policy.
+  const asUser = createClient<Database>(supabaseUrl, publishableKey, {
+    auth: { autoRefreshToken: false, persistSession: false },
+  });
+  const signIn = await asUser.auth.signInWithPassword({
+    email: "a@example.invalid",
+    password: "password123",
+  });
+  expect(signIn.error).toBeNull();
+
+  const direct = await asUser.from("events").insert({
+    user_id: signIn.data.user?.id ?? userId,
+    event_name: "screen_viewed",
+    properties: { screen: "home" },
+    platform: "web",
+    app_version: "e2e",
+  });
+  expect(direct.error).not.toBeNull();
 });

@@ -44,20 +44,9 @@ for (const path of sourceFiles) {
   }
 }
 
-const migrations = (
-  await Promise.all(
-    (await readdir(join(process.cwd(), "supabase/migrations")))
-      .filter((file) => file.endsWith(".sql"))
-      .map((file) => readFile(join(process.cwd(), "supabase/migrations", file), "utf8")),
-  )
-).join("\n");
-
-for (const eventName of eventNames) {
-  if (!migrations.includes(`'${eventName}'`)) {
-    throw new Error(
-      `Tracked event is missing from the database allowlist migrations: ${eventName}`,
-    );
-  }
-}
-
+// Event-name validity is the compiler's job now: trackEvent is keyed by the
+// catalog's schema map and /api/events parses a discriminated union built from
+// the same map, so there is no database allowlist left to cross-check. What
+// still needs a grep is the part types cannot see — a vendor SDK slipping in,
+// and a computed event name that would defeat the typed key.
 console.log(`Analytics contract verified for ${eventNames.size} tracked event names.`);
