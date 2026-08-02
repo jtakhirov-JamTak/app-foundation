@@ -12,6 +12,31 @@ import { existsSync } from "node:fs";
 //
 // db:reset and db:test need Docker and the local Supabase stack already running.
 // This script does not start them — it fails loudly and names the step instead.
+
+// Every surface START_NEW_APP.md's scaffold step removes. The e2e spec is nested
+// inside the feature folder, so it is listed separately on purpose: it catches a
+// deletion that took `_tests/` but kept the folder, which the folder check alone
+// would read as "still present" and the folder's absence would mask.
+const EXAMPLE_SURFACES = [
+  "src/app/(app)/(example-feature)",
+  "supabase/migrations/202607210002_example_records.sql",
+  "src/app/(app)/(example-feature)/_tests/example-feature.spec.ts",
+];
+
+// All present -> run. None present -> the app has been scaffolded, skip. Anything
+// in between is a half-finished deletion, which is precisely the state
+// verify:example-removal exists to catch, so it must fail rather than skip — a
+// single-sentinel check would have skipped silently and shipped the leftovers.
+function exampleRemovalPrecheck() {
+  const present = EXAMPLE_SURFACES.filter((surface) => existsSync(surface));
+  if (present.length === 0) return { action: "skip", reason: "example feature absent" };
+  if (present.length === EXAMPLE_SURFACES.length) return { action: "run" };
+  return {
+    action: "fail",
+    reason: `example partially deleted, still present: ${present.join(", ")}`,
+  };
+}
+
 const STEPS = [
   { name: "verify", args: ["run", "verify"] },
   { name: "db:reset", args: ["run", "db:reset"] },
@@ -25,11 +50,10 @@ const STEPS = [
     name: "verify:example-removal",
     args: ["run", "verify:example-removal"],
     // A derived app deletes the example feature at scaffold time (START_NEW_APP.md),
-    // which would leave this step permanently red. Skip on the artifact's absence
-    // rather than asking every downstream app to remember an edit here — a doc note
-    // is exactly the kind of manual step this gate exists to stop relying on.
-    skipWhen: () => !existsSync("src/app/(app)/(example-feature)"),
-    skipReason: "example feature absent",
+    // which would leave this step permanently red. Decide on the artifacts rather
+    // than asking every downstream app to remember an edit here — a doc note is
+    // exactly the kind of manual step this gate exists to stop relying on.
+    precheck: exampleRemovalPrecheck,
   },
 ];
 
@@ -44,8 +68,16 @@ for (const step of STEPS) {
     results.push({ name: step.name, status: `skipped (${failedStep} failed first)` });
     continue;
   }
-  if (step.skipWhen?.()) {
-    results.push({ name: step.name, status: `skipped (${step.skipReason})` });
+  const verdict = step.precheck?.() ?? { action: "run" };
+  if (verdict.action === "skip") {
+    results.push({ name: step.name, status: `skipped (${verdict.reason})` });
+    continue;
+  }
+  if (verdict.action === "fail") {
+    console.error(`release:verify: ${step.name} cannot run — ${verdict.reason}`);
+    results.push({ name: step.name, status: "FAIL (precondition)" });
+    failedStep = step.name;
+    exitCode = 1;
     continue;
   }
 

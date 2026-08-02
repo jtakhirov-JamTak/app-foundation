@@ -74,7 +74,7 @@ npm run verify:example-removal
 
 No other analytics, E2E, database-test, or generated-type edits are required. `verify:example-removal` performs exactly these deletions on a throwaway copy and fails if an `EXAMPLE-ONLY` marker survives anywhere under `src/`, `supabase/`, or `e2e/`, so a marker this list forgets is caught rather than shipped. `db:types` regenerates clean foundation types from the reset database; commit the regenerated `src/types/database.ts` along with the deletions.
 
-This is the last time you run `verify:example-removal`: once the example feature is gone it has nothing to delete. Nothing to un-wire — `npm run release:verify` detects the missing `src/app/(app)/(example-feature)` folder and reports the step as skipped.
+This is the last time you run `verify:example-removal`: once the example feature is gone it has nothing to delete. Nothing to un-wire — `npm run release:verify` decides from the artifacts. It skips the step only when **every** example surface is gone (the feature folder, its migration, and its spec under `_tests/`); if some are gone and others remain it fails and names what is left, so a half-finished deletion cannot pass as a completed one.
 
 ### Add `/` to the performance gate once `/` is a real page
 
