@@ -34,7 +34,7 @@ For sensitive columns, add a comment at column creation:
 - `email TEXT NOT NULL, -- PII: email`
 - `journal_text TEXT, -- SENSITIVE: journal content`
 
-`/privacy-audit` finds these by grep instead of inferring from column names.
+`/audit privacy` finds these by grep instead of inferring from column names.
 
 ## Constraints
 
@@ -78,7 +78,7 @@ If the project uses app-level authorization (no RLS), apply the same rules at th
 - Apply to dev (and pre-prod if applicable).
 - Regenerate the typed DB schema. Confirm the new types appear before consumers reference them.
 - An unapplied migration in main is a deploy footgun — flag if you're committing without applying.
-- After applying, run `/db-check` (or its verification query) to confirm every new column actually landed — idempotent `add column if not exists` blocks are silently skippable by a partial SQL-editor paste.
+- After applying, run `/audit db` (or its verification query) to confirm every new column actually landed — idempotent `add column if not exists` blocks are silently skippable by a partial SQL-editor paste.
 
 ## Validation
 

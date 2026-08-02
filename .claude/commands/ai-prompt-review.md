@@ -1,6 +1,6 @@
 ---
 name: ai-prompt-review
-description: Audit AI prompt / output-schema / model-config changes — injection delimiting, output-schema integrity, version-bump symmetry, and cost gates. Use when editing prompt builders, AI output schemas, or model config. NOT general code review (use /review-changes), NOT a runtime AI bug (use /fix-bug).
+description: Audit AI prompt / output-schema / model-config changes — injection delimiting, output-schema integrity, version-bump symmetry, and cost gates. Use when editing prompt builders, AI output schemas, or model config. NOT general code review (use /review), NOT a runtime AI bug (use /fix-bug).
 ---
 
 Audit changes to the AI prompt / output-schema / model-config surface. This is the highest-blast-radius surface in an AI product and the generic `/security-review` doesn't know the project's discipline for it. Output is a severity-ranked report, not a fix.
@@ -10,7 +10,7 @@ Audit changes to the AI prompt / output-schema / model-config surface. This is t
 - **Scope**: `$ARGUMENTS` may name a prompt file / schema file / dir / glob; default scope is the prompt + AI-output-schema files touched by uncommitted changes.
 - **Exceptions**: read `.claude/exceptions.md` at repo root before reporting; skip matching entries; surface any suppressed CRITICAL at the end.
 - **Caps**: honor `top=N`, `critical-only`, `high-only`, `unbounded`. Default: list every CRITICAL + HIGH; cap MEDIUM at 10, LOW at 5.
-- **Long-form rules**: `.claude/REVIEWER_CONVENTIONS.md`.
+- **Long-form rules**: `.claude/ENGINEERING_PLAYBOOK.md` §11.
 
 ## Step 0 — Discover the AI surface
 
@@ -38,7 +38,7 @@ Find, before judging:
 
 ## Step 3 — Versioning (VERSION-GUARD)
 
-Apply **VERSION-GUARD** (`.claude/REVIEWER_CONVENTIONS.md` §6): if this change alters the AI output **shape** (field added/removed/renamed/retyped), both the code-side `PROMPT_VERSION` and the DB-side `generator_version` / `ai_*_version` must bump, and the extractor/reader tag must move with it. A `PROMPT_VERSION` bump while the DB version stays put is traceability theater — old-shape and new-shape rows become indistinguishable, and a reader keyed on the old version renders new-shape rows as garbage. Reader and writer must filter on the version symmetrically.
+Apply **VERSION-GUARD** (`.claude/ENGINEERING_PLAYBOOK.md` §11): if this change alters the AI output **shape** (field added/removed/renamed/retyped), both the code-side `PROMPT_VERSION` and the DB-side `generator_version` / `ai_*_version` must bump, and the extractor/reader tag must move with it. A `PROMPT_VERSION` bump while the DB version stays put is traceability theater — old-shape and new-shape rows become indistinguishable, and a reader keyed on the old version renders new-shape rows as garbage. Reader and writer must filter on the version symmetrically.
 
 ## Step 4 — Model config & cost
 

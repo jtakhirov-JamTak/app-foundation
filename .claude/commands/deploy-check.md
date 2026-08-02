@@ -15,15 +15,30 @@ Pre-deploy or pre-launch audit. Argument-driven scope:
 - **Scope**: `$ARGUMENTS` parses `scope=delta|full`, `target=staging|prod`, `base=<sha>` (override the auto-detected last deploy).
 - **Exceptions**: read `.claude/exceptions.md` at repo root before reporting; skip matching entries; surface any suppressed BLOCKER at the end.
 - **Caps**: honor `top=N`, `critical-only` (BLOCKERs only), `high-only` (BLOCKERs + RISKs), `unbounded` in `$ARGUMENTS`. Default delta: list every BLOCKER and RISK individually; cap WATCH at 5. Default full: list every CRITICAL and IMPORTANT; cap NICE-TO-HAVE at 5.
-- **Long-form rules**: `.claude/REVIEWER_CONVENTIONS.md`.
+- **Long-form rules**: `.claude/ENGINEERING_PLAYBOOK.md` §11.
 
 ---
 
-# Verification (always — both scopes)
+# The release gate — mechanical first, human second
 
-Run the `npm run verify` agent (type check → lint → unit tests → production build, stop-on-first-failure, max 2 fix attempts per step, explicit ran-vs-skipped report). For a final pre-deploy pass, tell it to build from a clean state — clear `.next`/`dist`/`.turbo` first. If it returns FAIL, **stop and do not deploy.** Don't re-implement the sequence here; the agent owns it.
+Two things must be true before a tag, in this order. Never invert them: a human checklist run against a red build tells you nothing.
 
-Before any tag, `npm run release:verify` must be green — it carries the checks deliberately absent from per-PR CI (both browser engines, lab Lighthouse, full database rebuild) and prints a pass/fail/skipped table. If any step is FAIL or was never reached, **stop and do not tag.**
+## 1. Mechanical
+
+Run the `npm run verify` agent (format → type check → lint → unit tests → production build → bundle/sw/secrets/analytics checks, stop-on-first-failure, max 2 fix attempts per step, explicit ran-vs-skipped report). For a final pre-deploy pass, tell it to build from a clean state — clear `.next`/`dist`/`.turbo` first. If it returns FAIL, **stop and do not deploy.**
+
+Before any tag, `npm run release:verify` (`scripts/release-verify.mjs`) must also be green — it carries the checks deliberately absent from per-PR CI (both browser engines, lab Lighthouse via `npm run perf:lab`, a full database rebuild) and prints a pass/fail/skipped table. If any step is FAIL or was never reached, **stop and do not tag.** Don't re-implement either sequence here; the agent and the script own them, and the per-PR/release split is recorded in [DECISIONS 2026-08-02](../../docs/DECISIONS.md).
+
+## 2. Human — what the gate cannot prove
+
+`release:verify` is rung 5 of the playbook's verification ladder (§2). **Rung 6 has no script:**
+
+- **Real phone, production build.** The only test that certifies feel. Load the deployed build on an actual device — not an emulator, not a resized desktop window. Walk the primary journey end to end: sign in, the core action, sign out.
+- **Install the PWA** if the app is installable, and confirm standalone mode has no browser chrome leak and the theme colour matches the top bar.
+- **One authed read and one authed write** as a real (test-account) user.
+- Anything on the post-deploy smoke list below that you can exercise pre-tag.
+
+Report each as PASS / FAIL / SKIPPED with the reason. "Looks fine" is not a result.
 
 ---
 
@@ -67,7 +82,7 @@ Flag any migration not yet applied to the deploy target. Confirm explicitly befo
 
 - Rate-limit configuration changed? New effective cap per user per day?
 - Error-sink config changed? A new error path that fires per-request can exhaust quota in minutes.
-- AI prompt or model changed? Apply **VERSION-GUARD** (`.claude/REVIEWER_CONVENTIONS.md` §6) — output-shape change requires the DB version column bumped, not just the code constant. (For the prompt-safety surface itself, run `/ai-prompt-review`.)
+- AI prompt or model changed? Apply **VERSION-GUARD** (`.claude/ENGINEERING_PLAYBOOK.md` §11) — output-shape change requires the DB version column bumped, not just the code constant. (For the prompt-safety surface itself, run `/ai-prompt-review`.)
 - New sub-processor added? Privacy policy needs an update.
 
 ## Behavioural surface
@@ -121,17 +136,9 @@ Don't grep for `bcrypt` if the project uses managed auth; don't assume `index.ht
 
 ## Security, privacy, mobile, a11y, perf, observability, deps — delegate, don't re-audit
 
-Run the dedicated audits and fold their findings into this report by severity:
+Run `/review repo` and fold its deduplicated backlog into this report by severity. That mode spawns each audit area as its own agent and synthesizes one list; folding the areas in by prose reference here is exactly the skim-and-miss failure `/review repo` exists to prevent.
 
-- Access / auth / rate-limit / origin / user-id filtering / RLS → `/check-access`
-- PII flows, deletion cascade, export, sub-processor list, error-sink scrubbing → `/privacy-audit`
-- Touch targets, contrast, input font-size, soft-keyboard, PWA manifest → `/mobile-check` (user-facing pages)
-- Screen-reader / keyboard / semantics / WCAG AA → `/a11y-check` (user-facing pages)
-- N+1, unbounded reads, missing indexes, bundle weight → `/perf-check`
-- Critical-path instrumentation, error-sink capture/latching, alerts on money/auth → `/observability-check`
-- Dependency vulns, lockfile integrity, license, unmaintained deps → `/dep-audit`
-
-Then add only the launch-specific checks those don't cover:
+Then add only the launch-specific checks it doesn't cover:
 
 ### Security (launch-only residue)
 
@@ -150,9 +157,9 @@ Then add only the launch-specific checks those don't cover:
 ### UX (launch-only, non-mobile)
 
 - Loading + saving states; no silently-disabled buttons; every error path offers a next action.
-- Gated submits preserve input — apply **GATE-PRESERVE** (`.claude/REVIEWER_CONVENTIONS.md` §6): a 403/paywall keeps the filled form and inlines the upgrade, never a hard redirect that discards a multi-step entry.
+- Gated submits preserve input — apply **GATE-PRESERVE** (`.claude/ENGINEERING_PLAYBOOK.md` §11): a 403/paywall keeps the filled form and inlines the upgrade, never a hard redirect that discards a multi-step entry.
 - Onboarding flow runs end-to-end as a brand-new user on a phone-sized viewport.
-- Every nav link resolves to a real page — apply **LINK-RESOLVE** (§6) across the repo's nav targets; a dangling target is a live 404.
+- Every nav link resolves to a real page — apply **LINK-RESOLVE** (§11) across the repo's nav targets; a dangling target is a live 404.
 
 ## Subscription / payment lifecycle
 
@@ -182,7 +189,7 @@ Pre-launch projects rarely have these and find out at 2am.
 - DB migrations all applied to deploy target — flag any unpushed.
 - Production-grade email sender configured (not the auth provider's default-capped relay).
 - Error sink quota and alerting configured. Per-error-kind cooldown latching in code paths that can fail per-request.
-- **CI fast-signal gate:** if the project commits to main with auto-deploy and has no push-triggered typecheck/lint/build check, recommend `/ci-check` — moving that signal ahead of the deploy build (and adding lint the build may skip) is low-effort. Note it's a recommendation, not a BLOCKER: the deploy provider already fails on a broken build. Test-suite gating stays deferred until a suite exists.
+- **CI fast-signal gate:** if the project commits to main with auto-deploy and has no push-triggered typecheck/lint/build check, recommend `/audit ci` — moving that signal ahead of the deploy build (and adding lint the build may skip) is low-effort. Note it's a recommendation, not a BLOCKER: the deploy provider already fails on a broken build. Test-suite gating stays deferred until a suite exists.
 
 ## Output (full mode)
 

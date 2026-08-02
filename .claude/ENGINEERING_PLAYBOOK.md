@@ -79,7 +79,7 @@ report results exactly: passed, failed, or skipped.
 - Anything a client can reach will eventually receive hostile input. Validate at the
   boundary (zod) **and** constrain in the database (CHECK/FK/UNIQUE) — both, not either.
 - New sensitive column → data-classification comment (`-- PII:` / `-- SENSITIVE:`)
-  so `/privacy-audit` finds it by grep. Never log user-entered or sensitive data.
+  so `/audit privacy` finds it by grep. Never log user-entered or sensitive data.
 - When a review finds one hole, assume the pattern repeats — grep for it across the
   codebase before closing the finding.
 
@@ -104,6 +104,13 @@ Ship when, and only when:
 Everything past that bar goes to the **"Explicitly Deferred"** section of
 `ARCHITECTURE.md` (or a GitHub Issue) — deferral recorded is a decision, not a failure.
 
+## 9. Session hygiene
+
+- One intent per session. "While I'm here" is how rabbit holes start.
+- Plan mode for anything touching >3 files or any migration.
+- `/save-context` before context runs low; summaries beat truncation.
+- End every session at a green `verify` or an explicit stash — never mid-broken.
+
 ## 10. Where the history lives
 
 `ARCHITECTURE.md` describes only what is true now. Two documents hold the record behind
@@ -115,9 +122,19 @@ it, and both are appended to rather than rewritten:
   measurements. Read it before re-attempting anything listed under
   _Rejected approaches_; the experiment has already been run.
 
-## 9. Session hygiene
+## 11. Reviewer conventions
 
-- One intent per session. "While I'm here" is how rabbit holes start.
-- Plan mode for anything touching >3 files or any migration.
-- `/save-context` before context runs low; summaries beat truncation.
-- End every session at a green `verify` or an explicit stash — never mid-broken.
+Named conventions cited by `.claude/commands/`. Where a command cites one, the inline rule
+text in that command is authoritative; this section is the index.
+
+- **GATE-PRESERVE** — if a submit can return 403 / paywall / auth-required, keep the filled
+  form mounted, snapshot prior output, inline the gate. Never `router.push` away from a
+  filled multi-step form.
+- **DB-ERROR-CHECK** — `{ data, error }` returns do not throw on RLS/schema-drift/outage;
+  inspect `.error` on every DB call, including each result of a `Promise.all` over writes.
+- **ENFORCED-NOT-INTENDED** — judge what the code enforces, not what comments or names
+  intend. A check that can be bypassed is not a check.
+- **LINK-RESOLVE** — every internal link/route referenced must resolve to a real page;
+  verify targets exist rather than assuming from naming.
+- **VERSION-GUARD** — stored computed values carry a version stamp; readers filter on it,
+  writers stamp it, bumping invalidates stale rows without a migration.
