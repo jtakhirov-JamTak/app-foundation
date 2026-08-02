@@ -193,7 +193,8 @@ select lives_ok(
         '{"metric":"LCP","value":1234.5,"rating":"good","navigation_type":"navigate","screen":"home"}',
         'web', 'test'),
       ('11111111-1111-4111-8111-111111111111', 'app_error_recorded',
-        '{"area":"global","code":"ROUTE_RENDER_FAILED","recoverable":true}', 'web', 'test')$$,
+        '{"area":"global","code":"ROUTE_RENDER_FAILED","recoverable":true,"digest":"a1b2c3d4"}',
+        'web', 'test')$$,
   'Every catalogued event is accepted by the generic database constraints'
 );
 

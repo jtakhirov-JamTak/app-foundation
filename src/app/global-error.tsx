@@ -12,8 +12,8 @@ export default function GlobalError({
   reset: () => void;
 }) {
   useEffect(() => {
-    void recordError("global", "UNHANDLED_APPLICATION_ERROR", true);
-  }, [error]);
+    void recordError("global", "UNHANDLED_APPLICATION_ERROR", true, error.digest);
+  }, [error.digest]);
 
   return (
     <html lang="en">

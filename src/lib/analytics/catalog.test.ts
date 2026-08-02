@@ -19,6 +19,12 @@ async function eventNameToPropertyMappingIsEnforced() {
     code: "ROUTE_RENDER_FAILED",
     recoverable: true,
   });
+  await trackEvent("app_error_recorded", {
+    area: "global",
+    code: "ROUTE_RENDER_FAILED",
+    recoverable: true,
+    digest: "a1b2c3d4",
+  });
   await trackEvent("screen_viewed", {
     // @ts-expect-error app_error_recorded properties are not valid for screen_viewed
     area: "global",
@@ -63,6 +69,32 @@ describe("analytics catalog", () => {
     const result = eventRequestSchema.safeParse({
       event_name: "screen_viewed",
       properties: { screen: "home", note: "free text" },
+      ...envelope,
+    });
+    expect(result.success).toBe(false);
+  });
+
+  it("accepts app_error_recorded with and without a digest", () => {
+    const base = { area: "global", code: "ROUTE_RENDER_FAILED", recoverable: true };
+    for (const properties of [base, { ...base, digest: "a1b2c3d4" }]) {
+      const result = eventRequestSchema.safeParse({
+        event_name: "app_error_recorded",
+        properties,
+        ...envelope,
+      });
+      expect(result.success).toBe(true);
+    }
+  });
+
+  it("rejects a digest over the 128-character cap", () => {
+    const result = eventRequestSchema.safeParse({
+      event_name: "app_error_recorded",
+      properties: {
+        area: "global",
+        code: "ROUTE_RENDER_FAILED",
+        recoverable: true,
+        digest: "x".repeat(129),
+      },
       ...envelope,
     });
     expect(result.success).toBe(false);

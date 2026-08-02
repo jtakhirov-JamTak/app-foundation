@@ -67,6 +67,15 @@ export async function recordError(
   area: ErrorArea,
   code: ErrorCode,
   recoverable: boolean,
+  digest?: string,
 ): Promise<boolean> {
-  return trackEvent("app_error_recorded", { area, code, recoverable });
+  // Spread, never a bare `digest,` — assertSafeEventProperties rejects
+  // undefined values as non-scalar, and digest is undefined for every
+  // client-side error, which would throw on the common path.
+  return trackEvent("app_error_recorded", {
+    area,
+    code,
+    recoverable,
+    ...(digest ? { digest } : {}),
+  });
 }

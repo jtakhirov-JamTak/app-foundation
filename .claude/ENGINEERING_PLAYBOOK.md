@@ -89,6 +89,11 @@ Default answer is no. A new dependency needs: (a) the problem is real today, not
 anticipated; (b) writing it ourselves costs more than owning the dependency; (c) one
 line in ARCHITECTURE.md. Prefer boring, maintained, popular.
 
+**Foundation-inclusion test.** A dependency _or a pattern_ enters the template only if
+the **next derived app would need it on day one**. Anything a specific app needs and the
+next one wouldn't belongs in that app, not here — that is the same speculative-improvement
+failure §4 forbids, wearing an infrastructure costume.
+
 ## 8. Definition of done
 
 Ship when, and only when:

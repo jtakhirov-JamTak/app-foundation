@@ -6,15 +6,15 @@ import { ErrorState } from "@/components/states/error-state";
 import { recordError } from "@/lib/analytics/client";
 
 export default function ProtectedRouteError({
-  error: _error,
+  error,
   reset,
 }: {
   error: Error & { digest?: string };
   reset: () => void;
 }) {
   useEffect(() => {
-    void recordError("protected_route", "ROUTE_RENDER_FAILED", true);
-  }, []);
+    void recordError("protected_route", "ROUTE_RENDER_FAILED", true, error.digest);
+  }, [error.digest]);
 
   return <ErrorState code="ROUTE_RENDER_FAILED" onRetry={reset} />;
 }

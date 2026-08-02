@@ -36,6 +36,9 @@ the template per playbook §4. Unsure? Ask:
 Plan mode for non-trivial work. `/save-context` when context fills. `/commit`
 (never `git add -A`); push only on green verify.
 
+Canonical example: `src/app/(app)/(example-feature)` is the reference implementation for a new
+feature — table → endpoint → page. Copy its shape before inventing one.
+
 Pointers: `.claude/ENGINEERING_PLAYBOOK.md` · `ARCHITECTURE.md` · `.claude/commands/`
 History: `docs/FIX_LOG.md` (defects + regression tests) · `docs/DECISIONS.md` (why, with
 the measurements — check it before re-attempting a rejected optimization)

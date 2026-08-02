@@ -51,4 +51,27 @@ describe("analytics privacy", () => {
   it("rejects payloads over 4 KiB", () => {
     expect(() => assertSafeEventProperties({ value: "x".repeat(5000) })).toThrow();
   });
+
+  // Why recordError spreads `digest` instead of passing it positionally. An
+  // undefined value is not a scalar, so a present-but-undefined key throws —
+  // and digest is undefined for every purely client-side error, i.e. the
+  // common path. Omitting the key is the only shape that survives.
+  it("rejects a present-but-undefined property, but accepts the key omitted", () => {
+    expect(() =>
+      assertSafeEventProperties({
+        area: "global",
+        code: "ROUTE_RENDER_FAILED",
+        recoverable: true,
+        digest: undefined,
+      }),
+    ).toThrow();
+
+    expect(() =>
+      assertSafeEventProperties({
+        area: "global",
+        code: "ROUTE_RENDER_FAILED",
+        recoverable: true,
+      }),
+    ).not.toThrow();
+  });
 });

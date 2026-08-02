@@ -40,6 +40,12 @@ Before any tag, `npm run release:verify` (`scripts/release-verify.mjs`) must als
 
 Report each as PASS / FAIL / SKIPPED with the reason. "Looks fine" is not a result.
 
+### 3. LAUNCH BLOCKERS — affirm each line, before a derived app's first real users
+
+`npm run release:verify` prints a LAUNCH BLOCKERS checklist and does **not** fail on it: these are human steps no script can prove, and gating the exit code on them would only teach people to skip the gate. **Printing is not affirming.** Before a derived app goes to real users, walk the printed list and affirm every line explicitly — PASS / FAIL / SKIPPED with the reason, named item by named item. An unaffirmed line is a FAIL.
+
+This applies to a derived app's production launch, not to every routine deploy of an already-launched app.
+
 ---
 
 # `scope=delta` — since-last-deploy risk review

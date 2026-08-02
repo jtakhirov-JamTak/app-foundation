@@ -175,7 +175,7 @@ Known gaps, recorded as decisions rather than oversights (playbook §8). Each is
 
 - **Account lifecycle.** Password reset, email change, and user-initiated account deletion. Sign-in and sign-out exist; the rest is per-app product surface.
 - **`events` table retention policy.** The table is insert-only and grows without bound. No pruning, partitioning, or archival is defined.
-- **Production observability.** No health endpoint, uptime monitoring, or error alerting. Errors are recorded as typed analytics events only; nothing pages anyone.
+- **Production detection and alerting.** Server failures now leave a controlled trace — `apiErrorFromUnknown` emits one structured stderr line on any status ≥ 500 (`SESSION_UNAVAILABLE` at `warn`, everything else at `error`), `/api/events` logs the Postgres SQLSTATE on a write failure, and client error events carry Next's sanitized `digest` so a user report ties back to a server line. Controlled fields only: no message field anywhere, because vendor and Postgres messages embed user data. **Still deferred, and required before app #2 launches:** no health endpoint, no external uptime monitor, no error sink, nothing pages anyone. This makes failures traceable, not noticed.
 - **Serwist/webpack trigger.** The template builds with `--webpack` because Serwist requires it. If Next.js deprecates `--webpack`, revisit Serwist against a minimal hand-rolled service worker.
 
 ## History

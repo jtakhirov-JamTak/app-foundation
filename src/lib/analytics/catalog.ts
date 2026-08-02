@@ -71,6 +71,11 @@ const appErrorPropertiesSchema = z.strictObject({
   area: errorAreaSchema,
   code: errorCodeSchema,
   recoverable: z.boolean(),
+  // Next's server-generated error hash. Sanitized by construction — it is a
+  // digest, not a message — and it is the only handle that ties a client error
+  // report to a server log line. Absent for purely client-side errors, so it is
+  // optional and recordError omits the key rather than sending undefined.
+  digest: z.string().min(1).max(128).optional(),
 });
 
 // EXAMPLE-ONLY: delete with src/app/(app)/(example-feature)

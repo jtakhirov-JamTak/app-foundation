@@ -64,9 +64,22 @@ export async function POST(request: Request) {
   });
 
   if (error) {
+    // 23514 is the generic-invariant CHECK rejecting the payload: a client
+    // error, answered with 422, so it stays silent like every other 4xx.
     if (error.code === "23514") {
       return apiError("INVALID_EVENT", 422, false, id);
     }
+    // This 503 is returned via apiError directly, so apiErrorFromUnknown's
+    // logger never sees it. Same controlled shape, plus the Postgres SQLSTATE
+    // and nothing else — message/details/hint can echo row content.
+    console.error(
+      JSON.stringify({
+        level: "error",
+        request_id: id,
+        code: "EVENT_WRITE_FAILED",
+        pg_code: error.code,
+      }),
+    );
     return apiError("EVENT_WRITE_FAILED", 503, true, id);
   }
 

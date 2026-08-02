@@ -127,4 +127,17 @@ if (failedStep) {
   console.log(`\nrelease:verify passed ${passed} of ${results.length} steps.`);
 }
 
+// Printed on both paths, and deliberately non-failing: these are human steps no
+// script can prove, so gating exit code on them would only teach people to skip
+// the gate. Printing is not affirming — /deploy-check requires the human to
+// affirm each line explicitly before a derived app launches to real users.
+console.log(`
+LAUNCH BLOCKERS — mandatory checklist; do not launch a derived app to real
+users without affirming every item in /deploy-check:
+[ ] Password recovery flow (forgot-password entry, recovery email, new-password screen)
+[ ] Production SMTP configured and test email delivered
+[ ] External uptime monitor on a real public route
+[ ] Error sink or notification path for server exceptions
+[ ] Dependency-aware health check (safe DB operation with short timeout)`);
+
 process.exit(exitCode);
