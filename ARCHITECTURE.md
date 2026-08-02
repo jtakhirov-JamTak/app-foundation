@@ -4,7 +4,7 @@
 
 ### Required foundation
 
-Static safe shell, client session gate, protected APIs, Supabase RLS, SWR memory cache, conservative service worker, typed analytics, state components, strict quality gates, and seven maintained documents (README, ARCHITECTURE, START_NEW_APP, CLAUDE.md, .claude/ENGINEERING_PLAYBOOK.md, docs/FIX_LOG.md, docs/DECISIONS.md).
+Static safe shell, client session gate, protected APIs, Supabase RLS, SWR memory cache, conservative service worker, typed analytics, state components, strict quality gates, and eight maintained documents (README, ARCHITECTURE, START_NEW_APP, CLAUDE.md, .claude/ENGINEERING_PLAYBOOK.md, docs/FIX_LOG.md, docs/DECISIONS.md, docs/RUNBOOK_RESTORE.md).
 
 ### Optional modules
 
@@ -173,9 +173,9 @@ Optimizations that were measured and turned down. Each links to the evidence, so
 
 Known gaps, recorded as decisions rather than oversights (playbook §8). Each is out of scope until a real requirement appears.
 
-- **Account lifecycle.** Password reset, email change, and user-initiated account deletion. Sign-in and sign-out exist; the rest is per-app product surface.
+- **Account lifecycle.** Password recovery, email change, and user-initiated account deletion. Sign-in and sign-out exist; the rest is per-app product surface. **Password recovery is scheduled, not open-ended:** it is built in app #2 and ported back per playbook §4 as v1.2, and app #2 must not launch to real users without the LAUNCH BLOCKERS checklist affirmed in `/deploy-check` → [DECISIONS.md](docs/DECISIONS.md#2026-08-02--password-recovery-and-production-observability-are-built-in-app-2-and-ported-back-as-v12).
 - **`events` table retention policy.** The table is insert-only and grows without bound. No pruning, partitioning, or archival is defined.
-- **Production detection and alerting.** Server failures now leave a controlled trace — `apiErrorFromUnknown` emits one structured stderr line on any status ≥ 500 (`SESSION_UNAVAILABLE` at `warn`, everything else at `error`), `/api/events` logs the Postgres SQLSTATE on a write failure, and client error events carry Next's sanitized `digest` so a user report ties back to a server line. Controlled fields only: no message field anywhere, because vendor and Postgres messages embed user data. **Still deferred, and required before app #2 launches:** no health endpoint, no external uptime monitor, no error sink, nothing pages anyone. This makes failures traceable, not noticed.
+- **Production detection and alerting.** Server failures now leave a controlled trace — `apiErrorFromUnknown` emits one structured stderr line on any status ≥ 500 (`SESSION_UNAVAILABLE` at `warn`, everything else at `error`), `/api/events` logs the Postgres SQLSTATE on a write failure, and client error events carry Next's sanitized `digest` so a user report ties back to a server line. Controlled fields only: no message field anywhere, because vendor and Postgres messages embed user data. **Still deferred, and required before app #2 launches:** no health endpoint, no external uptime monitor, no error sink, nothing pages anyone. This makes failures traceable, not noticed. The remainder is built in app #2 and ported back per playbook §4 as v1.2, enforced until then by the LAUNCH BLOCKERS checklist rather than by code → [DECISIONS.md](docs/DECISIONS.md#2026-08-02--password-recovery-and-production-observability-are-built-in-app-2-and-ported-back-as-v12).
 - **Serwist/webpack trigger.** The template builds with `--webpack` because Serwist requires it. If Next.js deprecates `--webpack`, revisit Serwist against a minimal hand-rolled service worker.
 
 ## History

@@ -19,6 +19,23 @@ Every command below assumes Linux or WSL2 (Ubuntu) — the only supported develo
 4. Copy `.env.example` to `.env.local`.
 5. Set `NEXT_PUBLIC_APP_ID=<new-repository-name>`, `NEXT_PUBLIC_APP_VERSION=0.1.0`, and `APP_ENV=local`.
 6. Replace `public/icon-192.png` and `public/icon-512.png`.
+7. Create `foundation.json` at the repository root so the app records where it came from:
+
+   ```json
+   {
+     "foundationVersion": "v1.0.0",
+     "createdFromCommit": "6965f48",
+     "createdAt": "2026-08-02"
+   }
+   ```
+
+   Take `foundationVersion` from the template's `README.md` `Template version:` line and
+   `createdFromCommit` from `git rev-parse HEAD` in the template clone. Without this, a
+   later foundation fix has no baseline to diff against and porting it back is guesswork.
+   Write the bare version value: prefixing it with the template's repository name is the
+   one way this file breaks the rename check at the end of this document. Commit the file
+   and run `npm run format` — `prettier --check .` walks the repository root, there is no
+   `.prettierignore`, and it is the first step of `npm run verify`.
 
 ## 6–10 minutes — environment and new Supabase project
 
@@ -41,7 +58,7 @@ Commit the regenerated `src/types/database.ts`.
 
 1. Confirm the local URLs in `supabase/config.toml`; the template uses local email sign-up without confirmation.
 2. In the remote Supabase project, set the deployed site URL and allowed redirect URLs.
-3. Choose whether the shipped app requires email confirmation. Production SMTP is a launch task when confirmation is enabled, not part of the scaffold timer.
+3. Choose whether the shipped app requires email confirmation. Production SMTP is a launch task either way, not part of the scaffold timer — and it stops being conditional on this setting the moment password recovery exists, because a recovery email is outbound mail regardless. See the deploy step below.
 4. The included browser suite verifies sign-in, sign-out, and expired-session behavior after the production build.
 
 ## 17–20 minutes — delete the example feature
@@ -113,6 +130,7 @@ In a second terminal, run `npm run dev`. Open a mobile viewport, verify the safe
 4. Deploy.
 5. Verify install, cold open, service-worker repeat open, offline safe shell, sign-in, sign-out, expired-session redirect, and one cross-user RLS test.
 6. Mark the GitHub repository as a template under **Settings → General → Template repository**.
+7. Before **real users** — not before this deploy — walk the LAUNCH BLOCKERS checklist that `npm run release:verify` prints and affirm every line in `/deploy-check`. Two of its items bind here: password recovery and production SMTP. **Enabling password recovery makes production SMTP unconditional, not conditional.** The recovery email is outbound mail whether or not email confirmation is on, and the auth provider's default relay is rate-capped and not a production sender. Plan on this: the next app built from this template will enable password recovery, so treat SMTP as required rather than optional. The checklist also covers an uptime monitor, an error sink, a dependency-aware health check, and the backup/restore drill in [docs/RUNBOOK_RESTORE.md](docs/RUNBOOK_RESTORE.md).
 
 Before declaring the rename complete, run:
 

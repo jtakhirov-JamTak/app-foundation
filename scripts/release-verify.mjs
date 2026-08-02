@@ -138,6 +138,7 @@ users without affirming every item in /deploy-check:
 [ ] Production SMTP configured and test email delivered
 [ ] External uptime monitor on a real public route
 [ ] Error sink or notification path for server exceptions
-[ ] Dependency-aware health check (safe DB operation with short timeout)`);
+[ ] Dependency-aware health check (safe DB operation with short timeout)
+[ ] Backup/restore drill executed and its result recorded (see docs/RUNBOOK_RESTORE.md)`);
 
 process.exit(exitCode);

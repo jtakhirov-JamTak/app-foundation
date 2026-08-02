@@ -44,6 +44,8 @@ Report each as PASS / FAIL / SKIPPED with the reason. "Looks fine" is not a resu
 
 `npm run release:verify` prints a LAUNCH BLOCKERS checklist and does **not** fail on it: these are human steps no script can prove, and gating the exit code on them would only teach people to skip the gate. **Printing is not affirming.** Before a derived app goes to real users, walk the printed list and affirm every line explicitly — PASS / FAIL / SKIPPED with the reason, named item by named item. An unaffirmed line is a FAIL.
 
+One line needs its procedure named, because it is the only item that cannot be done in the moment: the backup/restore drill is in [docs/RUNBOOK_RESTORE.md](../../docs/RUNBOOK_RESTORE.md). Affirm it against the **recorded result** — date, row counts, RLS check, cross-user read — not against having read the runbook. Free-tier projects have no automated backups, so for them the drill is the whole backup story.
+
 This applies to a derived app's production launch, not to every routine deploy of an already-launched app.
 
 ---

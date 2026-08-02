@@ -94,3 +94,4 @@ npm run verify:example-removal
 - [.claude/ENGINEERING_PLAYBOOK.md](.claude/ENGINEERING_PLAYBOOK.md) — verification ladder, bug protocol, and definition of done
 - [docs/FIX_LOG.md](docs/FIX_LOG.md) — every foundation defect, its fix, and the regression test guarding it
 - [docs/DECISIONS.md](docs/DECISIONS.md) — why the foundation is built this way, with the measurements
+- [docs/RUNBOOK_RESTORE.md](docs/RUNBOOK_RESTORE.md) — Supabase backup and restore, and the drill each app runs before launch
