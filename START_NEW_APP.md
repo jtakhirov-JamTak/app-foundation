@@ -25,7 +25,7 @@ Every command below assumes Linux or WSL2 (Ubuntu) — the only supported develo
 
    ```json
    {
-     "foundationVersion": "v1.0.0",
+     "foundationVersion": "v1.1.0",
      "createdFromCommit": "6965f48",
      "createdAt": "2026-08-02"
    }

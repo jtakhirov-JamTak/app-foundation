@@ -1,6 +1,6 @@
 # app-foundation
 
-Template version: v1.0.0
+Template version: v1.1.0
 
 An opinionated production foundation for mobile-first, security-sensitive Next.js/Supabase applications.
 
