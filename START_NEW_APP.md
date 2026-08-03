@@ -13,7 +13,9 @@ Every command below assumes Linux or WSL2 (Ubuntu) — the only supported develo
 
 ## 3–6 minutes — rename
 
-1. Change `name` in `package.json`.
+1. Change `name` in `package.json`, then run `npm install --package-lock-only` so
+   `package-lock.json`'s two root `name` fields follow it. Editing `package.json` alone
+   leaves the template's name in the lockfile, which the rename check below catches.
 2. Replace the `README.md` title and replace `Application` in `src/app/layout.tsx`, `src/app/manifest.ts`, and `src/components/app-shell/app-shell.tsx`.
 3. Change `project_id` in `supabase/config.toml`.
 4. Copy `.env.example` to `.env.local`.
@@ -135,7 +137,15 @@ In a second terminal, run `npm run dev`. Open a mobile viewport, verify the safe
 Before declaring the rename complete, run:
 
 ```bash
-git grep -n -E "app-foundation|Application" -- . ':!START_NEW_APP.md'
+git grep -n -E "app-foundation|\bApplication\b" -- . \
+  ':!START_NEW_APP.md' ':!CLAUDE.md' ':!docs/FIX_LOG.md' ':!.claude/ENGINEERING_PLAYBOOK.md'
 ```
 
-The command must return no results. The app is ready when the production build passes, an empty database rebuilds from migrations, mobile smoke tests pass, and no template/product name remains.
+The command must return no results, and it does — every exclusion below is deliberate rather than a way of making a red check look green:
+
+- `\bApplication\b` is word-bounded so ordinary prose like "Applications where a cross-user data leak…" in `README.md` is not a hit. Every real leftover is the standalone word.
+- `CLAUDE.md`, `docs/FIX_LOG.md`, and `.claude/ENGINEERING_PLAYBOOK.md` are excluded because they are **supposed** to name the template: `CLAUDE.md` records which template the app came from, every `FIX_LOG` row is attributed by `**Found in:**`, and the playbook's §4 tells you to port fixes back to the `app-foundation` repository. Rewriting those would destroy provenance, not complete a rename.
+
+Nothing else is excluded. In particular `package-lock.json` is deliberately still in scope — a hit there means step 1's `npm install --package-lock-only` was skipped, which is a real miss the old unscoped pattern buried under 25 others.
+
+The app is ready when the production build passes, an empty database rebuilds from migrations, mobile smoke tests pass, and no template/product name remains.

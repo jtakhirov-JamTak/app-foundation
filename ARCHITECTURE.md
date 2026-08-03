@@ -14,6 +14,12 @@ External error vendor, payments, AI, admin, file storage, push notifications, en
 
 Everything under `src/app/(app)/(example-feature)` and migration `202607210002_example_records.sql`.
 
+The scaffold step deletes both (`START_NEW_APP.md`), after which these paths exist only in
+the template repository's history — `git show 'v1.1.0:src/app/(app)/(example-feature)/example/page.tsx'`
+in a clone of the template, or read it on GitHub from an app made with **Use this
+template**, which carries no history or tags. Two blind scaffold tests each rediscovered
+this the hard way, so it is written down rather than left as a search.
+
 ## Launch sequence
 
 1. Next.js or Serwist serves static shell HTML and build assets.

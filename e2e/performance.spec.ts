@@ -134,7 +134,7 @@ test("mobile cold launch and scripted interaction stay within Web Vitals budgets
 // hard navigation is what would break it.
 //
 // Verified by instrumenting the observer 2026-07-30: each run emits exactly two
-// candidates — the pre-redirect shell text ("Application") at ~132–144 ms, then
+// candidates — the pre-redirect shell wordmark at ~132–144 ms, then
 // the sign-in subtitle from src/app/(public)/sign-in/page.tsx at ~276–296 ms.
 // The winner is post-redirect content, so this genuinely measures the journey.
 test("unauthenticated cold start paints sign-in within the LCP budget", async ({

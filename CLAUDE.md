@@ -39,6 +39,18 @@ Plan mode for non-trivial work. `/save-context` when context fills. `/commit`
 Canonical example: `src/app/(app)/(example-feature)` is the reference implementation for a new
 feature — table → endpoint → page. Copy its shape before inventing one.
 
+**Once the scaffold step has deleted it, this path is gone from the working tree** and the
+example lives only in the template repository's history. Recover it there rather than
+inventing a pattern — note the page sits one level deeper than the folder name suggests:
+
+```bash
+git ls-tree -r v1.1.0 --name-only | grep example-feature
+git show 'v1.1.0:src/app/(app)/(example-feature)/example/page.tsx'
+```
+
+An app made with GitHub's **Use this template** carries no history or tags, so those
+commands only work in a clone of the template itself; from a derived app, read it there.
+
 Pointers: `.claude/ENGINEERING_PLAYBOOK.md` · `ARCHITECTURE.md` · `.claude/commands/`
 History: `docs/FIX_LOG.md` (defects + regression tests) · `docs/DECISIONS.md` (why, with
 the measurements — check it before re-attempting a rejected optimization)
