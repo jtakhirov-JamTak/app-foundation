@@ -95,3 +95,4 @@ npm run verify:example-removal
 - [docs/FIX_LOG.md](docs/FIX_LOG.md) — every foundation defect, its fix, and the regression test guarding it
 - [docs/DECISIONS.md](docs/DECISIONS.md) — why the foundation is built this way, with the measurements
 - [docs/RUNBOOK_RESTORE.md](docs/RUNBOOK_RESTORE.md) — Supabase backup and restore, and the drill each app runs before launch
+- [docs/APP_FIX_LOG.md](docs/APP_FIX_LOG.md) · [docs/APP_DECISIONS.md](docs/APP_DECISIONS.md) — where an app built from this template records its **own** defects and decisions, kept separate from the foundation's two logs above

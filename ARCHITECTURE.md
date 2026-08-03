@@ -4,7 +4,7 @@
 
 ### Required foundation
 
-Static safe shell, client session gate, protected APIs, Supabase RLS, SWR memory cache, conservative service worker, typed analytics, state components, strict quality gates, and eight maintained documents (README, ARCHITECTURE, START_NEW_APP, CLAUDE.md, .claude/ENGINEERING_PLAYBOOK.md, docs/FIX_LOG.md, docs/DECISIONS.md, docs/RUNBOOK_RESTORE.md).
+Static safe shell, client session gate, protected APIs, Supabase RLS, SWR memory cache, conservative service worker, typed analytics, state components, strict quality gates, and ten maintained documents (README, ARCHITECTURE, START_NEW_APP, CLAUDE.md, .claude/ENGINEERING_PLAYBOOK.md, docs/FIX_LOG.md, docs/DECISIONS.md, docs/RUNBOOK_RESTORE.md, docs/APP_FIX_LOG.md, docs/APP_DECISIONS.md). The last two are the app's own history and stay empty in the template; the two before them are the foundation's and are inherited read-only by a derived app.
 
 ### Optional modules
 

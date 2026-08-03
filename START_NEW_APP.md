@@ -39,6 +39,12 @@ Every command below assumes Linux or WSL2 (Ubuntu) — the only supported develo
    and run `npm run format` — `prettier --check .` walks the repository root, there is no
    `.prettierignore`, and it is the first step of `npm run verify`.
 
+8. Nothing to create, but know which history is yours: `docs/APP_FIX_LOG.md` and
+   `docs/APP_DECISIONS.md` are this app's, and start empty. `docs/FIX_LOG.md` and
+   `docs/DECISIONS.md` beside them are the **foundation's**, inherited from the template
+   and describing its defects and decisions rather than yours — read them, don't append to
+   them. Playbook §4 step 2 decides which file any given entry belongs in.
+
 ## 6–10 minutes — environment and new Supabase project
 
 1. Create a new Supabase project and record its project reference.

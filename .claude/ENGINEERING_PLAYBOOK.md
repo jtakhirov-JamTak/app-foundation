@@ -41,14 +41,18 @@ report results exactly: passed, failed, or skipped.
 ## 4. Foundation-fix protocol (full version; short form in CLAUDE.md)
 
 1. Reproduce and fix the bug in the app where it appeared. Add a regression test there.
-2. Ask: would the next template-derived app hit this? No → done, product bug.
+2. Ask: would the next template-derived app hit this? No → product bug: record it in the
+   app's `docs/APP_FIX_LOG.md` and stop here. "Done" is the fix plus the record, not the
+   fix alone — an unrecorded product bug is the next person's rediscovery.
 3. Yes → extract the **smallest product-neutral version** of the fix.
 4. Apply that fix and its regression test to the `app-foundation` repo.
 5. Run the template's `npm run verify` (+ `db:test` if migrations or policies changed).
 6. If the fix touches startup, setup docs, auth, PWA/SW, or migrations: scaffold a
    throwaway app and verify the affected path actually works from the template.
 7. Add one entry to the **Foundation Fix Log** at the template's `docs/FIX_LOG.md`:
-   date/version · problem · generic fix · regression test · which app found it.
+   date/version · problem · generic fix · regression test · which app found it. The
+   app-side entry from step 2 stays in its own `docs/APP_FIX_LOG.md` — the two logs
+   record the same incident from opposite sides and neither replaces the other.
    A rejected optimization also gets a one-line entry under _Rejected approaches_ in
    `ARCHITECTURE.md`, linking to the evidence.
 8. Tag a patch release using semantic versioning (v1.0.0 → v1.0.1).

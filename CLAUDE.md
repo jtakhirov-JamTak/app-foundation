@@ -26,9 +26,9 @@ Read `ARCHITECTURE.md` before changing auth, security, DB structure, analytics, 
 ## Bugs
 
 `/fix-bug`; the 3-attempt STOP rule is mandatory. Every fixed code or config bug gets a
-regression test on the exact failing condition. Then classify: **product** → done;
-**foundation** (template-derived code) → also port the product-neutral fix + test to
-the template per playbook §4. Unsure? Ask:
+regression test on the exact failing condition. Then classify: **product** → record it in
+`docs/APP_FIX_LOG.md`, done; **foundation** (template-derived code) → also port the
+product-neutral fix + test to the template per playbook §4. Unsure? Ask:
 "would the next template app hit this?" Yes → foundation.
 
 ## Sessions
@@ -52,5 +52,7 @@ An app made with GitHub's **Use this template** carries no history or tags, so t
 commands only work in a clone of the template itself; from a derived app, read it there.
 
 Pointers: `.claude/ENGINEERING_PLAYBOOK.md` · `ARCHITECTURE.md` · `.claude/commands/`
-History: `docs/FIX_LOG.md` (defects + regression tests) · `docs/DECISIONS.md` (why, with
-the measurements — check it before re-attempting a rejected optimization)
+History, foundation (inherited from the template, read before re-arguing something it already
+settled): `docs/FIX_LOG.md` (defects + regression tests) · `docs/DECISIONS.md` (why, with the
+measurements — check it before re-attempting a rejected optimization)
+History, this app (where your own entries go): `docs/APP_FIX_LOG.md` · `docs/APP_DECISIONS.md`
