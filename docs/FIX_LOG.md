@@ -6,6 +6,42 @@ date/version · problem · generic fix · regression test · which app found it.
 Newest first. Current-state architecture lives in [`ARCHITECTURE.md`](../ARCHITECTURE.md);
 design decisions live in [`DECISIONS.md`](DECISIONS.md).
 
+### 2026-08-02 — Adding one primary route broke a foundation e2e spec that counted nav skeletons
+
+**Version:** 1.1.0
+
+**Problem:** **`e2e/auth-shell.spec.ts` asserted `page.getByRole("navigation").locator(".skeleton")` `toHaveCount(2)`, a literal copy of how many primary routes the template happens to ship.** The app shell renders exactly one skeleton span per entry in its `PRIMARY_ROUTES` array, so a derived app adding its first primary route turned a green foundation gate red for a reason that had nothing to do with the gate's subject — that the safe shell paints placeholders, and no navigable link, before the session is verified. Both S9 blind scaffold tests hit it independently, and both did the same thing: edited the foundation spec so their own feature could pass. That is the failure mode worth naming — a template that ships a gate its own users must edit teaches them that gates are negotiable
+
+**Generic fix:** The route set moved out of `app-shell.tsx` into a new dependency-free `src/lib/navigation/routes.ts` exporting `PRIMARY_ROUTES` / `PRIMARY_PATHS`, and the spec now asserts `toHaveCount(PRIMARY_ROUTES.length)`. The module carries no runtime imports on purpose — the shell is a client component pulling in `next/link` and `next/navigation`, vitest runs in a node environment with no React renderer, and Playwright specs import it too, so anything heavier would break two of the three consumers. This is the first runtime `@/` import in `e2e/`; the only prior one was `import type`, which erases
+
+**Regression test:** The spec itself is the test, and its non-vacuity was proven by mutation rather than by reading: appending a third route to `PRIMARY_ROUTES` leaves `npm run test:e2e` green where the old literal would have failed. `src/lib/navigation/use-primary-swipe.test.ts` covers the export it now depends on
+
+**Found in:** blind scaffold test (S9)
+
+### 2026-08-02 — The swipe gate asserted a destination's content, so a route that loads data broke it
+
+**Version:** 1.1.0
+
+**Problem:** **`e2e/navigation-mobile.spec.ts` ended a swipe with `expect(page.getByRole("heading", { name: "Settings" }))`, coupling a navigation test to one specific route's rendered output.** Two failures fall out of that. The route name is a literal, so inserting any route between `/` and `/settings` makes the assertion target the wrong page; and asserting rendered content means the destination must render _successfully_, which Settings does because it fetches nothing. Both S9 blind apps put a data-fetching route in that slot, both painted a load-error state, and both had to add an API mock to a foundation spec to make a navigation test pass — mocking a route the test was never about
+
+**Generic fix:** The spec derives its destination from `adjacentPrimaryRoute("/", 1)` in `src/lib/navigation/routes.ts` and asserts the resulting **URL** via `toHaveURL((url) => url.pathname === destination)` instead of the destination's heading. A URL assertion is indifferent to whether the landing page is loading, empty, populated, or erroring, so a derived app needs neither a mock nor an edit. The adjacent-link test in the same file takes its accessible name from `PRIMARY_ROUTES[1].label` for the same reason. What the test asserts is unchanged — that a horizontal swipe navigates to the adjacent primary route
+
+**Regression test:** Covered by the same mutation proof: reordering or inserting a primary route changes what the spec targets without changing the spec. `adjacentPrimaryRoute`'s ordering and end-of-set behaviour are unit-tested in `src/lib/navigation/use-primary-swipe.test.ts`, including that it stops rather than wraps
+
+**Found in:** blind scaffold test (S9)
+
+### 2026-08-02 — The primary-swipe unit test asserted a literal it declared itself and could never fail
+
+**Version:** 1.1.0
+
+**Problem:** **`src/lib/navigation/use-primary-swipe.test.ts` declared `const routes = ["/", "/settings"]` and then asserted that array had length 2 and no duplicates.** It never imported the application's route set — `PRIMARY_ROUTES` was a module-private const inside `app-shell.tsx` and not exported — so the test asserted a property of a literal it had just written. It could not fail for any change to the app, it would not have caught a duplicate href in the real array, and it passed for the entire life of the template while appearing in the count as coverage of primary-route navigation. Same class as the vacuous gates the README points at this log to explain
+
+**Generic fix:** The pure logic came out of the hook into `src/lib/navigation/routes.ts` as `primaryRouteIndex()` and `adjacentPrimaryRoute()`, which `usePrimarySwipe` now calls instead of inlining a `findIndex` and an index±1 lookup. The test imports the real exports and derives every expectation from the array — each route resolves to its own index, `/` matches exactly rather than as a prefix, a nested path resolves to its owning route, forward and back traverse the declared order, and both ends return null rather than wrapping. Extracting to pure functions is what makes this testable at all: vitest runs `environment: "node"` with no React renderer, so the hook itself cannot be rendered
+
+**Regression test:** The rewritten file, 12 tests, proven non-vacuous by three mutations rather than by inspection: appending a duplicate route fails 5 of them, making `adjacentPrimaryRoute` wrap modulo the set length fails "stops at both ends instead of wrapping", and — the case that matters for derived apps — inserting a legitimate third route keeps all 12 green. Reverting each returns 12 passed
+
+**Found in:** blind scaffold test (S9)
+
 ### 2026-08-02 — The Lighthouse gate could not run on the only supported development environment
 
 **Version:** 1.0.0

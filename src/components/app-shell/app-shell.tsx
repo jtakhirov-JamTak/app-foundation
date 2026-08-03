@@ -7,6 +7,7 @@ import { useEffect, useRef } from "react";
 
 import { OfflineBanner } from "@/components/states/offline-state";
 import { useOnlineStatus } from "@/lib/network/use-online-status";
+import { PRIMARY_PATHS, PRIMARY_ROUTES } from "@/lib/navigation/routes";
 import { usePrimarySwipe } from "@/lib/navigation/use-primary-swipe";
 import { screenFromPath } from "@/lib/analytics/screen-registry";
 import {
@@ -15,12 +16,6 @@ import {
 } from "@/lib/performance/navigation-metrics";
 
 import { useSession } from "./session-provider";
-
-const PRIMARY_ROUTES = [
-  { href: "/", label: "Home" },
-  { href: "/settings", label: "Settings" },
-] as const;
-const PRIMARY_PATHS = PRIMARY_ROUTES.map((route) => route.href);
 
 function NavContent({
   label,

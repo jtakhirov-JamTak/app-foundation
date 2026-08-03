@@ -10,6 +10,7 @@ import {
   reportNavigationFeedback,
 } from "@/lib/performance/navigation-metrics";
 
+import { adjacentPrimaryRoute, primaryRouteIndex } from "./routes";
 import { navigate, type NavigationRouter } from "./view-transition";
 
 const MIN_DISTANCE = 64;
@@ -21,9 +22,7 @@ export function usePrimarySwipe(
   routes: readonly Route[],
 ) {
   const start = useRef<{ x: number; y: number; pointerId: number } | null>(null);
-  const routeIndex = routes.findIndex((route) =>
-    route === "/" ? pathname === "/" : pathname.startsWith(route),
-  );
+  const routeIndex = primaryRouteIndex(pathname, routes);
 
   return useMemo(() => {
     const onPointerDown: PointerEventHandler<HTMLElement> = (event) => {
@@ -50,8 +49,7 @@ export function usePrimarySwipe(
       const dy = event.clientY - initial.y;
       if (Math.abs(dx) < MIN_DISTANCE || Math.abs(dx) < Math.abs(dy) * DOMINANCE) return;
 
-      const nextIndex = dx < 0 ? routeIndex + 1 : routeIndex - 1;
-      const href = routes[nextIndex];
+      const href = adjacentPrimaryRoute(pathname, dx < 0 ? 1 : -1, routes);
       if (!href) return;
 
       router.prefetch(href);

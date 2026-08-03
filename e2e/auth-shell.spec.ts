@@ -2,6 +2,7 @@ import { createClient } from "@supabase/supabase-js";
 import { expect, test, type Page } from "@playwright/test";
 
 import { loadEnvLocal } from "../scripts/load-env-local.mjs";
+import { PRIMARY_ROUTES } from "@/lib/navigation/routes";
 import type { Database } from "@/types/database";
 
 // Playwright runs globalSetup in its own process, so its loadEnvLocal() call
@@ -79,7 +80,11 @@ test("safe shell paints before session verification and analytics", async ({ pag
 
   await page.goto("/");
   await expect(page.locator("[data-safe-shell]")).toBeVisible();
-  await expect(page.getByRole("navigation").locator(".skeleton")).toHaveCount(2);
+  // One placeholder per primary route, derived from the route set rather than a
+  // literal, so adding a route is not a reason to edit this gate.
+  await expect(page.getByRole("navigation").locator(".skeleton")).toHaveCount(
+    PRIMARY_ROUTES.length,
+  );
 
   // The session request may not have fired yet; resolving before the route
   // callback runs would leave the request blocked forever.

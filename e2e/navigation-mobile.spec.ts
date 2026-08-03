@@ -1,5 +1,13 @@
 import { expect, test } from "@playwright/test";
 
+import { adjacentPrimaryRoute, PRIMARY_ROUTES } from "@/lib/navigation/routes";
+
+// The route reached from "/" by a forward swipe, and the label of the nav link that
+// points at it. Both derived from the route set: a derived app that inserts its own
+// second primary route should not have to edit this file.
+const [, SECOND_ROUTE] = PRIMARY_ROUTES;
+const SWIPE_DESTINATION = adjacentPrimaryRoute("/", 1);
+
 test.beforeEach(async ({ page }) => {
   await page.route("**/api/session", (route) =>
     route.fulfill({
@@ -45,8 +53,8 @@ test("prefetched primary navigation acknowledges within 100 ms on throttled 4G a
   });
 
   await page.goto("/");
-  const settings = page.getByRole("link", { name: "Settings" });
-  await expect(settings).toBeVisible();
+  const secondLink = page.getByRole("link", { name: SECOND_ROUTE.label, exact: true });
+  await expect(secondLink).toBeVisible();
   await page.waitForTimeout(500);
 
   await page.evaluate(() => {
@@ -55,8 +63,8 @@ test("prefetched primary navigation acknowledges within 100 ms on throttled 4G a
   });
   await expect.poll(() => page.evaluate(() => window.scrollY)).toBeGreaterThan(500);
 
-  await settings.click();
-  await expect(page.getByRole("heading", { name: "Settings" })).toBeVisible();
+  await secondLink.click();
+  await expect(page).toHaveURL((url) => url.pathname === SECOND_ROUTE.href);
   await expect.poll(() => feedback.length).toBeGreaterThan(0);
   expect(feedback[0]).toBeLessThanOrEqual(100);
   await page.goBack();
@@ -76,5 +84,10 @@ test("horizontal swipe moves between adjacent primary routes", async ({ page }) 
   await page.mouse.move(box.x + box.width * 0.2, box.y + box.height * 0.42);
   await page.mouse.up();
 
-  await expect(page.getByRole("heading", { name: "Settings" })).toBeVisible();
+  // Assert the destination URL, not what the destination renders. The heading this
+  // replaced coupled the gate to one route's content: a derived app whose second
+  // primary route fetches data painted an error state here and had to mock an API
+  // just to keep a navigation test passing (docs/FIX_LOG.md, 2026-08-02).
+  if (!SWIPE_DESTINATION) throw new Error("No primary route adjacent to /");
+  await expect(page).toHaveURL((url) => url.pathname === SWIPE_DESTINATION);
 });
